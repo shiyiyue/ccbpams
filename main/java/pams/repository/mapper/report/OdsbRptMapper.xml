@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pams.repository.dao.report.OdsbRptMapper">
+
+    <!--RptA07V1 基金成交客户明细 -->
+    <sql id="RptA07V1_Where_Clause">
+      <where>
+          a.CUST_OPEN_NODE in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+          <if test = " startDate != null and startDate != '' ">
+                <![CDATA[ and a.D_CDATE >= #{startDate} ]]>
+          </if>
+          <if test = " endDate != null and endDate != '' ">
+                <![CDATA[ and a.D_CDATE <= #{endDate} ]]>
+          </if>
+          <if test = " startAmt != null and startAmt != 0 ">
+              <![CDATA[ and a.F_CONFIRMBALANCE >= #{startAmt} ]]>
+          </if>
+          <if test = " endAmt != null and endAmt != 0 ">
+              <![CDATA[ and a.F_CONFIRMBALANCE <= #{endAmt}  ]]>
+          </if>
+          <if test = " custName != null and custName != '' ">
+               and a.CUST_NAME like '%${custName}%'
+          </if>
+          <if test = " certNo != null and certNo != '' ">
+               and a.CUST_NO like '%${certNo}%'
+          </if>
+      </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA07V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+          select count(*)
+            from ODSB_ST_TCONFIRM_TRAD a
+             <include refid="RptA07V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA07V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbStTconfirmTradMapper.BaseResultMap">
+        select *
+          from (select t1.*, rownum rnum
+                from (
+                    select  *
+                        from ODSB_ST_TCONFIRM_TRAD a
+                        <include refid="RptA07V1_Where_Clause" />
+                    order by
+                       <if test = " sortField != null and sortField != '' ">
+                            ${sortField}
+                       </if>
+                       <if test = " sortOrder != null and sortOrder != '' ">
+                            ${sortOrder}
+                       </if>
+                       , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <!--RptA08V1 渠道交易情况明细 -->
+    <sql id="RptA08V1_Where_Clause">
+      <where>
+          a.SIGN_INSTN in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+          <if test = " startDate != null and startDate != '' ">
+                <![CDATA[ and a.SIGN_DT >= #{startDate} ]]>
+          </if>
+          <if test = " endDate != null and endDate != '' ">
+                <![CDATA[ and a.SIGN_DT <= #{endDate} ]]>
+          </if>
+          <if test = " custName != null and custName != '' ">
+               and a.CUST_NAME like '%${custName}%'
+          </if>
+          <if test = " certNo != null and certNo != '' ">
+               and a.CERT_NO like '%${certNo}%'
+          </if>
+          <if test = " chnNo != null and chnNo != '' ">
+               and a.CHN_NO = #{chnNo}
+          </if>
+      </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA08V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+          select count(*)
+            from ODSB_CHN_TRAD a
+             <include refid="RptA08V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA08V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbChnTradMapper.BaseResultMap">
+        select *
+          from (select t1.*, rownum rnum
+                from (
+                    select  *
+                        from ODSB_CHN_TRAD a
+                        <include refid="RptA08V1_Where_Clause" />
+                    order by
+                       <if test = " sortField != null and sortField != '' ">
+                            ${sortField}
+                       </if>
+                       <if test = " sortOrder != null and sortOrder != '' ">
+                            ${sortOrder}
+                       </if>
+                       , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+
+    <!-- 综合报表：代发工资数据 RPTA09V1 -->
+    <sql id="RptA09V1_Where_Clause">
+        <where>
+            a.SIGN_INSTN in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " corpName != null and corpName != '' ">
+                and a.UNIT_NAME like '%${corpName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA09V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_PAYROLL_TXN a
+        <include refid="RptA09V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA09V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbPayrollTxnMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_PAYROLL_TXN a
+        <include refid="RptA09V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <!-- 综合报表：住房公积金数据 RPTA10V1 -->
+    <sql id="RptA10V1_Where_Clause">
+        <where>
+            a.INST_NO in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " custName != null and custName != '' ">
+                and a.CUST_NAME like '%${custName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA10V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_HOUSINGFUND_TXN a
+        <include refid="RptA10V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA10V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbHousingfundTxnMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_HOUSINGFUND_TXN a
+        <include refid="RptA10V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <!-- 综合报表：代发业务数据 RPTA11V1 -->
+    <sql id="RptA11V1_Where_Clause">
+        <where>
+            a.SIGN_INSTN in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " corpName != null and corpName != '' ">
+                and a.ACCT_NAME1 like '%${corpName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA11V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_PAYAGENT_TXN a
+        <include refid="RptA11V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA11V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbPayagentTxnMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_PAYAGENT_TXN a
+        <include refid="RptA11V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+
+    <!-- 综合报表：CTS保证金余额明细表 RPTA12V1 -->
+    <sql id="RptA12V1_Where_Clause">
+        <where>
+            a.inst_no in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " custName != null and custName != '' ">
+                and a.cust_name like '%${custName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA12V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_CTS_BAL a
+        <include refid="RptA12V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA12V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbCtsBalMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_CTS_BAL a
+        <include refid="RptA12V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <!-- 综合报表：结算通卡余额明细表 RPTA13V1 -->
+    <sql id="RptA13V1_Where_Clause">
+        <where>
+            a.inst_no in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " custName != null and custName != '' ">
+                and a.cust_name like '%${custName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA13V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_STLCRD_BAL a
+        <include refid="RptA13V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA13V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbStlcrdBalMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_STLCRD_BAL a
+        <include refid="RptA13V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+</mapper>

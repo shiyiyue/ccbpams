@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pams.repository.dao.custlist.CustlistMapper">
+
+    <sql id="QueryCustinfo_Where_Clause">
+      <where>
+          a.base_branch_id in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+
+          <if test = " rptType != null and rptType != '' ">
+              and a.rpt_type = #{rptType}
+          </if>
+          <if test = " rptDate != null and rptDate != '' ">
+              and a.rpt_date = #{rptDate}
+          </if>
+          <if test = " custNo != null and custNo != '' ">
+              and a.base_custno_ecif like '%${custNo}%'
+          </if>
+          <if test = " startAum != null and startAum != '' ">
+              <![CDATA[
+              and a.asset_aum_tp >= #{startAum}
+              ]]>
+          </if>
+          <if test = " endAum != null and endAum != '' ">
+              <![CDATA[
+              and a.asset_aum_tp <= #{endAum}
+              ]]>
+          </if>
+      </where>
+    </sql>
+
+    <!--批量插入 注意 foreach 中字段的顺序要与  Base_Column_List 中一致 -->
+    <insert id="insertBatch" parameterType="java.util.List">
+        insert into cls_rptdata ( <include refid="pams.repository.dao.ClsRptdataMapper.Base_Column_List" /> )
+          <foreach collection="list" item="item" index="index" separator= "union all ">
+            select
+              #{item.baseCustnoEcif, jdbcType=VARCHAR},
+              #{item.rptDate, jdbcType=VARCHAR},
+              #{item.rptType, jdbcType=VARCHAR},
+              #{item.baseBranchName, jdbcType=VARCHAR},
+              #{item.baseBranchId, jdbcType=VARCHAR},
+              #{item.baseLevelSys, jdbcType=VARCHAR},
+              #{item.baseLevelManual, jdbcType=VARCHAR},
+              #{item.baseCustname, jdbcType=VARCHAR},
+              #{item.basePhone1, jdbcType=VARCHAR},
+              #{item.basePhone2, jdbcType=VARCHAR},
+              #{item.assetAumMad, jdbcType=DECIMAL},
+              #{item.assetAumTp, jdbcType=DECIMAL},
+              #{item.assetBalDepSa, jdbcType=DECIMAL},
+              #{item.assetBalDepTd, jdbcType=DECIMAL},
+              #{item.assetBalFund, jdbcType=DECIMAL},
+              #{item.assetBalActMetal, jdbcType=DECIMAL},
+              #{item.assetBalRealMetal, jdbcType=DECIMAL},
+              #{item.assetBalBnd, jdbcType=DECIMAL},
+              #{item.assetBalFin, jdbcType=DECIMAL},
+              #{item.assetBalCts, jdbcType=DECIMAL},
+              #{item.assetBalInsure, jdbcType=DECIMAL},
+              #{item.assetBalInsureBuy, jdbcType=DECIMAL},
+              #{item.assetBalFinOth, jdbcType=DECIMAL},
+              #{item.loanBalTp, jdbcType=DECIMAL},
+              #{item.txnSaveAmt, jdbcType=DECIMAL},
+              #{item.txnSaveTimes, jdbcType=INTEGER},
+              #{item.txnDrawAmt, jdbcType=DECIMAL},
+              #{item.txnDrawTimes, jdbcType=INTEGER},
+              #{item.txnBankcardTimes, jdbcType=INTEGER},
+              #{item.txnBankcardAmt, jdbcType=DECIMAL},
+              #{item.txnCrcardTimes, jdbcType=INTEGER},
+              #{item.txnCrcardAmt, jdbcType=DECIMAL},
+              #{item.signNetBank, jdbcType=VARCHAR},
+              #{item.signMobiBank, jdbcType=VARCHAR},
+              #{item.signTelBank, jdbcType=VARCHAR},
+              #{item.baseOrigBranchName, jdbcType=VARCHAR},
+              #{item.baseOrigBranchId, jdbcType=VARCHAR},
+              #{item.assetAumLyMad, jdbcType=DECIMAL},
+              #{item.fincrdCardno, jdbcType=VARCHAR},
+              #{item.fincrdBalMad, jdbcType=DECIMAL},
+              #{item.fincrdBalTp, jdbcType=DECIMAL},
+              #{item.fincrdTxnCntM6, jdbcType=INTEGER},
+              #{item.fincrdTxnAmtM6, jdbcType=DECIMAL},
+              #{item.loanBal, jdbcType=DECIMAL},
+              #{item.othCrcardLimit, jdbcType=DECIMAL},
+              #{item.ctsSignBranchId, jdbcType=VARCHAR},
+              #{item.ctsSignActno, jdbcType=VARCHAR},
+              #{item.ctsAmtB2sCm, jdbcType=DECIMAL},
+              #{item.ctsAmtS2bCm, jdbcType=DECIMAL},
+              #{item.ctsBalMargin, jdbcType=DECIMAL},
+              #{item.ctsAmtBuyCm, jdbcType=DECIMAL},
+              #{item.ctsAmtSellCm, jdbcType=DECIMAL},
+              #{item.baseBranchIdL2, jdbcType=VARCHAR},
+              #{item.assetAumLmMad, jdbcType=DECIMAL},
+              #{item.largeIntbOutTimes, jdbcType=INTEGER},
+              #{item.largeIntbOutAmt, jdbcType=DECIMAL},
+              #{item.largeIntbInTimes, jdbcType=INTEGER},
+              #{item.largeIntbInAmt, jdbcType=DECIMAL},
+              #{item.dgkhSaveAmtCm, jdbcType=DECIMAL},
+              #{item.dgkhDrawAmtCm, jdbcType=DECIMAL},
+              #{item.gjjAumMad, jdbcType=DECIMAL},
+              #{item.gjjAumTp, jdbcType=DECIMAL},
+              #{item.gjjAmtAddCm, jdbcType=DECIMAL},
+              #{item.assetChgGe30, jdbcType=INTEGER}
+              from  dual
+        </foreach>
+    </insert>
+
+    <delete id="deleteRecords" parameterType="java.lang.String" >
+        delete from  cls_rptdata where rpt_date = #{rptdate} and rpt_type = #{rpttype}
+    </delete>
+
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countCustlistRecords" parameterType="pams.repository.model.ClsRptdata" resultType="java.lang.Integer">
+          select count(*)
+            from cls_rptdata a
+             <include refid="QueryCustinfo_Where_Clause" />
+    </select>
+
+
+    <select id="selectCustlistRecords" parameterType="pams.repository.model.ClsRptdata"  resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
+        select  *
+            from cls_rptdata a
+             <include refid="QueryCustinfo_Where_Clause" />
+        order by a.base_branch_id
+    </select>
+
+    <select id="selectCustlistRecordsByCertInfo" parameterType="java.lang.String"  resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
+        select  *
+            from cls_rptdata a
+          where 1=1
+            <if test = " certType != null and certType != '' ">
+                and a.cert_type = #{certType}
+            </if>
+            <if test = " certNo != null and certNo != '' ">
+                and a.cert_no = #{certNo}
+            </if>
+        order by a.rpt_date desc, a.rpt_type
+    </select>
+
+    <select id="selectCustlistRecordsByCustno" parameterType="java.lang.String"  resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
+        select  *
+            from cls_rptdata a
+          where 1=1
+            <if test = " custNo != null and custNo != '' ">
+                and a.base_custno_ecif = #{custNo}
+            </if>
+        order by a.rpt_date desc, a.rpt_type
+    </select>
+
+    <select id="selectCustlistRecordsByPageSize"  parameterType="pams.repository.model.custlist.CustListParam" resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
+        select *
+          from (select t1.*, rownum rnum
+                from (
+                    select  *
+                        from cls_rptdata a
+                      <include refid="QueryCustinfo_Where_Clause" />
+                    order by
+                       <if test = " sortField != null and sortField != '' ">
+                            ${sortField}
+                       </if>
+                       <if test = " sortOrder != null and sortOrder != '' ">
+                            ${sortOrder}
+                       </if>
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <resultMap id="CustMngResultMap" type="pams.repository.model.custlist.CustMngVO">
+        <id column="GUID" jdbcType="VARCHAR" property="guid" />
+        <result column="BRANCH_ID" jdbcType="VARCHAR" property="branchId" />
+        <result column="CUST_NAME" jdbcType="VARCHAR" property="custName" />
+        <result column="CERT_TYPE" jdbcType="VARCHAR" property="certType" />
+        <result column="CERT_NO" jdbcType="VARCHAR" property="certNo" />
+        <result column="CONTACT_INFO1" jdbcType="VARCHAR" property="contactInfo1" />
+        <result column="CONTACT_INFO2" jdbcType="VARCHAR" property="contactInfo2" />
+        <result column="RPT_DATE" jdbcType="VARCHAR" property="rptDate" />
+        <result column="RPT_TYPE" jdbcType="VARCHAR" property="rptType" />
+        <result column="OPER_ID" jdbcType="VARCHAR" property="operId" />
+        <result column="OPER_DATE" jdbcType="TIMESTAMP" property="operDate" />
+        <result column="IMP_DATE" jdbcType="TIMESTAMP" property="impDate" />
+        <result column="CUSTMGR_ID" jdbcType="VARCHAR" property="custmgrId" />
+        <result column="CUST_NO_TYPE" jdbcType="VARCHAR" property="custNoType" />
+        <result column="CUST_NO" jdbcType="VARCHAR" property="custNo" />
+        <result column="CONTACT_INFO_EXT" jdbcType="VARCHAR" property="contactInfoExt" />
+        <result column="REMARK" jdbcType="VARCHAR" property="remark" />
+
+        <result column="CUSTMGR_NAME" jdbcType="VARCHAR" property="custmgrName" />
+
+        <result column="AUM_MONTH_CURR" property="aumMonthCurr" jdbcType="DECIMAL" />
+        <result column="AUM_MONTH_LAST" property="aumMonthLast" jdbcType="DECIMAL" />
+        <result column="AUM_TIMEPOINT_DEP" property="aumTimepointDep" jdbcType="DECIMAL" />
+        <result column="LOAN_BAL" property="loanBal" jdbcType="DECIMAL" />
+        <result column="CTS_MARGIN_BAL" property="ctsMarginBal" jdbcType="DECIMAL" />
+    </resultMap>
+
+    <sql id="QueryCustMng_Where_Clause">
+        <where>
+        </where>
+    </sql>
+    <sql id="SelectCustMng_Select_SQL">
+            select a.*,
+                b.aum_month_curr,
+                b.aum_month_last,
+                b.aum_timepoint_dep,
+                b.loan_bal,
+                b.cts_margin_bal,
+                (select opername from ptoper where operid=a.custmgr_id) as custmgr_name
+            from SV_CMS_CUSTBASE a,
+                (select t.base_branch_id as branch_id,
+                    t.base_custno_ecif as cust_no,
+                    max(t.asset_aum_mad) as aum_month_curr,
+                    max(t.asset_aum_lm_mad) as aum_month_last,
+                    max(t.asset_aum_tp) as aum_timepoint_dep,
+                    max(t.loan_bal) as loan_bal,
+                    max(t.cts_bal_margin) as cts_margin_bal
+                from cls_rptdata t
+                where t.rpt_type = #{rptType}
+                    and t.rpt_date = #{rptDate}
+                group by t.base_branch_id, t.base_custno_ecif) b
+            where a.branch_id = b.branch_id
+                and a.cust_no = b.cust_no
+                and a.branch_id = #{branchId}
+                <if test = " hideDispatchedFlag == true">
+                    and a.custmgr_id is null
+                </if>
+                <if test = " custmgrId != null and custmgrId != '' ">
+                    and a.custmgr_id = #{custmgrId}
+                </if>
+                <if test = " custNo != null and custNo != '' ">
+                    and a.cust_no like  '%${custNo}%'
+                </if>
+                <if test = " custName != null and custName != '' ">
+                    and cust_name in
+                    <foreach item="item" index="index" collection="custNameList"
+                             open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+
+    </sql>
+
+
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countCustMngRecords" parameterType="pams.repository.model.custlist.CustMngVO" resultType="java.lang.Integer">
+        select count(*)
+        from (<include refid="SelectCustMng_Select_SQL" />) a
+           <include refid="QueryCustMng_Where_Clause" />
+    </select>
+
+    <select id="selectCustMngRecordsByPageSize"  parameterType="pams.repository.model.custlist.CustMngParam" resultMap="CustMngResultMap">
+        select *
+            from (select t1.*, rownum rnum
+                from (
+                    select  *
+                     from ( <include refid="SelectCustMng_Select_SQL" />)
+                      <include refid="QueryCustMng_Where_Clause" />
+            order by
+                <if test = " sortField != null and sortField != '' ">
+                    ${sortField}
+                </if>
+                <if test = " sortOrder != null and sortOrder != '' ">
+                    ${sortOrder}
+                </if>
+        ) t1
+        <![CDATA[
+            where rownum <= #{pagesize}) t2
+           where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+    <select id="selectPtopersForRole_CustMgr" parameterType="java.lang.String" resultMap="pams.repository.dao.PtoperMapper.BaseResultMap">
+        select a.operid,a.opername
+              from ptoper a
+             where a.operid in
+                   (select b.operid
+                      from ptoperrole b
+                     where b.roleid = 'BIZ030'
+                       and b.operid in
+                           (select c.operid from ptoper c where c.deptid = #{branchId}))
+              order by a.operid
+    </select>
+
+
+
+    <!--查询客户经理全部信息 -->
+    <sql id="SelectCustBase_Select_SQL">
+        select a.*,
+           (select opername from ptoper where operid=a.custmgr_id) as custmgr_name
+        from SV_CMS_CUSTBASE a
+            where a.branch_id = #{branchId}
+                <if test = " hideDispatchedFlag == true">
+                    and a.custmgr_id is null
+                </if>
+                <if test = " custmgrId != null and custmgrId != '' ">
+                    and a.custmgr_id = #{custmgrId}
+                </if>
+                <if test = " custNo != null and custNo != '' ">
+                    and a.cust_no like '%${custNo}%'
+                </if>
+                <if test = " custName != null and custName != '' ">
+                    and cust_name in
+                    <foreach item="item" index="index" collection="custNameList"
+                             open="(" separator="," close=")">
+                        #{item}
+                    </foreach>
+                </if>
+    </sql>
+
+    <select id="countCustBaseRecords" parameterType="pams.repository.model.custlist.CustMngVO" resultType="java.lang.Integer">
+        select count(*)
+        from (<include refid="SelectCustBase_Select_SQL" />) a
+    </select>
+
+    <select id="selectCustBaseRecordsByPageSize"  parameterType="pams.repository.model.custlist.CustMngParam" resultMap="CustMngResultMap">
+        select *
+          from (select t1.*, rownum rnum
+        from (
+            select  *
+             from ( <include refid="SelectCustBase_Select_SQL" />)
+                order by
+                    <if test = " sortField != null and sortField != '' ">
+                        ${sortField}
+                    </if>
+                    <if test = " sortOrder != null and sortOrder != '' ">
+                        ${sortOrder}
+                    </if>
+            ) t1
+        <![CDATA[
+            where rownum <= #{pagesize}) t2
+           where t2.rnum > #{offset}
+       ]]>
+    </select>
+
+</mapper>

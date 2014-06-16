@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pams.repository.dao.dataetl.DataETLMapper">
+
+    <!--初始化客户基本信息 -->
+    <update id="mergeCustBaseRecords"  parameterType="java.lang.String">
+          merge into sv_cms_custbase a
+            using (select t.base_branch_id as branch_id,
+                          --(select /*+parallel(t1,5)*/t1.name from BF_PR_IND_PARTY_NAME t1 where t1.p_cust_no  = t.cust_no and t1.PARTY_NAME_TYPE = '12') as cust_name,
+                          --max(t.cust_name)||'('||max(t.cust_gender)||')' as cust_name,
+                          --t.cert_type,
+                          max(t.BASE_CUSTNAME) as cust_name,
+                          t.BASE_CUSTNO_ECIF as cust_no,
+                          max(BASE_PHONE1) as contact_info1,
+                          max(BASE_PHONE2) as contact_info2,
+                          max(rpt_date) as rpt_date,
+                          max(rpt_type) as rpt_type
+                     from CLS_RPTDATA t
+                    group by t.BASE_BRANCH_ID, t.BASE_CUSTNO_ECIF) b
+            on (a.cust_no = b.cust_no)
+            when not matched then
+              insert
+                (guid,
+                 branch_id,
+                 cust_name,
+                 --cert_type,
+                 cust_no,
+                 contact_info1,
+                 contact_info2,
+                 rpt_date,
+                 rpt_type,
+                 imp_date)
+              values
+                (sys_guid(),
+                 b.branch_id,
+                 b.cust_name,
+                 --b.cert_type,
+                 b.cust_no,
+                 b.contact_info1,
+                 b.contact_info2,
+                 b.rpt_date,
+                 b.rpt_type,
+                 sysdate) where b.rpt_date = #{rptDate}
+            when matched then
+              update
+                 set a.contact_info1 = b.contact_info1,
+                     a.contact_info2 = b.contact_info2,
+                     a.rpt_date      = b.rpt_date,
+                     a.rpt_type      = b.rpt_type,
+                     a.cust_name     = b.cust_name,
+                     a.branch_id     = b.branch_id,
+                     a.imp_date      = sysdate
+               where b.rpt_date =  #{rptDate}
+                 and a.rpt_type = b.rpt_type
+    </update>
+
+    <!--初始化客户基本信息 补充身份证号-->
+    <update id="updateCustBaseRecords4CertInfo">
+        update sv_cms_custbase a
+           set (a.cert_type, a.cert_no) =
+               (select cert_type, cert_no
+                  from bf_pr_ind_info@odsbptdb
+                 where p_cust_no = a.cust_no)
+         where a.cert_no is null
+    </update>
+
+    <update id="updateNullCertTypeRecords" parameterType="java.lang.String">
+        update sv_cls_custinfo set cert_type = #{certType} where cert_type is null  and rpt_date = #{rptDate}
+    </update>
+
+
+    <!--大额资金流向 -->
+    <delete id="deleteLargeFlowData" parameterType="java.lang.String">
+        <![CDATA[
+          delete from odsb_largedep_flow where tx_dt >= #{startDate}
+        ]]>
+    </delete>
+    <insert id="importLargeFlowRecords" parameterType="java.lang.String">
+        <![CDATA[
+        insert into ODSB_LARGEDEP_FLOW
+            (SELECT A1.TX_DT,
+                   A1.TX_INST_NO,
+                   A2.CM_OPUN_FLNM_CHN TX_INST_NAME,
+                   A1.INST_NO,
+                   A3.CM_OPUN_FLNM_CHN INST_NAME,
+                   A1.CUST_ACCT_NO,
+                   A1.CUST_NO,
+                   A1.CUST_NAME,
+                   A1.SA_OP_BANK_NO,
+                   A1.SA_OP_ACCT_NO,
+                   A1.SA_OP_CUST_NAME,
+                   A1.DR_CR_COD,
+                   A1.CR_TX_AMT,
+                   A1.BUSI_TYPE,
+                   A1.SUMMARY,
+                   A1.TX_TYPE,
+                   A1.XT_OP_TRL,
+                   A1.CURR_CD,
+                   (select SOURCE_CD_DESC from BF_CM_STD_CODE t where t.category_cd = 'ACC1300012'  and ods_standard_cd = A1.CURR_CD and system_id = '09') as CURR_NAME
+              FROM (SELECT A.SA_TX_DT AS TX_DT,
+                           A.BUS_INST_NO AS TX_INST_NO,
+                           B.INST_NO,
+                           A.CUST_ACCT_NO,
+                           A.CUST_NO,
+                           B.CUST_NAME,
+                           A.SA_OP_BANK_NO,
+                           A.SA_OP_ACCT_NO_32 SA_OP_ACCT_NO,
+                           A.SA_OP_CUST_NAME,
+                           A.DR_CR_COD,
+                           A.CR_TX_AMT,
+                           A.CURR_CD,
+                           '活期' BUSI_TYPE,
+                           A.SA_RMRK_DESC SUMMARY,
+                           A.XT_OP_TRL,
+                           (SELECT G.SOURCE_CD_DESC from BF_CM_STD_CODE G where G.CATEGORY_CD='EVE0100027' AND G.Ods_Standard_Cd=A.TX_TYPE ) TX_TYPE
+                      FROM BF_EVT_DEP_SAP A
+                      LEFT JOIN BF_AGT_DEP_ACCT_SAP B
+                        ON A.ACCT_NO = B.ACCT_NO
+                       AND A.CURR_CD = B.CURR_CD
+                       AND A.CURR_IDEN = B.CURR_IDEN
+                     WHERE A.EC_FLG = '0'
+                       AND A.SA_TX_DT >= #{startDate}
+                       and A.CR_TX_AMT >= (CASE WHEN A.CURR_CD = '156' THEN 50000 ELSE 100 END)
+                    UNION ALL
+                    SELECT C.CR_TX_DT TX_DT,
+                           C.TD_OPUN_COD TX_INST_NO,
+                           D.INST_NO,
+                           C.CUST_ACCT_NO,
+                           C.CUST_NO,
+                           D.CUST_NAME,
+                           '' SA_OP_BANK_NO,
+                           '' SA_OP_ACCT_NO,
+                           '' SA_OP_CUST_NAME,
+                           SUBSTR(C.DR_CR_COD, 2, 1) DR_CR_COD,
+                           C.CR_TX_AMT,
+                           C.CURR_CD,
+                           '定期' BUSI_TYPE,
+                           (select PQNR from BF_CM_SUMMARY E where E.DSCRP_COD=C.SUMMARY) DR_CR_COD,
+                           C.TD_OPR_NO XT_OP_TRL,
+                           (SELECT F.SOURCE_CD_DESC from BF_CM_STD_CODE F where F.CATEGORY_CD='EVE0100027' AND F.Ods_Standard_Cd=C.TX_TYPE) TX_TYPE
+                      FROM BF_EVT_DEP_TDP C
+                      LEFT JOIN BF_AGT_DEP_ACCT_TDP D
+                        ON C.ACCT_NO = D.ACCT_NO
+                       AND C.CURR_IDEN = D.CURR_IDEN
+                       AND C.CURR_CD = D.CURR_CD
+                     WHERE C.EC_FLG = '0'
+                       AND C.CR_TX_DT >= #{startDate}
+                       and C.CR_TX_AMT >= (CASE WHEN C.CURR_CD = '156' THEN 50000 ELSE 100 END)
+                       ) A1
+              LEFT JOIN BF_PR_BR_INSTN A2
+                ON A2.OPR_UNIT_CD = A1.TX_INST_NO
+              LEFT JOIN BF_PR_BR_INSTN A3
+                ON A3.OPR_UNIT_CD = A1.INST_NO)
+        ]]>
+    </insert>
+
+    <!--基金成交客户明细  -->
+    <delete id="deleteData_RptA07V1" parameterType="java.lang.String">
+        <![CDATA[
+          delete from ODSB_ST_TCONFIRM_TRAD where d_cdate >= #{startDate}
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA07V1" parameterType="java.lang.String">
+        <![CDATA[
+        insert into ODSB_ST_TCONFIRM_TRAD
+            (
+            SELECT
+                t3.CUST_NAME  投资人姓名
+                ,t3.CERT_NO  证件号码
+                ,t3.SECUR_CORD  证券卡号
+                ,t3.CAPI_ACCOUNT  资金帐号
+                ,t2.FUND_ACCT_NO  基金帐号
+                ,t1.FUND_CD  基金代码
+                ,t3.CUST_CITY_ACCNT  转账签约帐号
+                ,t1.D_CDATE  确认日期
+                ,t1.D_DATE  交易申请日期
+                ,t1.F_CONFIRMBALANCE  确认金额
+                ,t1.F_CONFIRMSHARES  确认份额
+                ,t3.CARD_DATE  卡建立日期
+                ,t3.CUST_OPEN_DT  开户日期
+                ,t3.CUST_OPEN_NODE  开户网点
+                ,t2.TSBN 证券网点编号
+                ,sys_guid() guid
+                FROM BF_EVT_NIN_ST_TCONFIRM_TRAD@odsbptdb t1,BF_AGT_NIN_ST_TACCOINFO@odsbptdb t2,BF_AGT_NIN_ST_TA_SEC_CARD@odsbptdb t3
+                WHERE t1.Fund_Acct_No=t2.Fund_Acct_No AND t2.Secur_Cord=t3.Secur_Cord AND t1.D_CDATE >= #{startDate}
+            )
+        ]]>
+    </insert>
+
+    <!--渠道交易明细  -->
+    <delete id="deleteData_RptA08V1" parameterType="java.lang.String">
+        <![CDATA[
+          delete from ODSB_CHN_TRAD
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA08V1" parameterType="java.lang.String">
+        <![CDATA[
+        insert into ODSB_CHN_TRAD
+         (
+           select sys_guid() guid, t.* from
+             (select t2.SIGN_INSTN as 开通签约服务机构,
+                   t1.CUST_NAME as 姓名,
+                   t1.CERT_TYPE as 证件类型,
+                   t1.CERT_NO as 证件号码,
+                   t2.SIGN_DT as 开通签约服务日期,
+                   t1.VC_MOBILENO as 手机号码,
+                   t2.ENTRY_TMS as 登录次数,
+                   t3.total as 交易笔数,
+                   case  t2.AUTH_TYPE
+                     when  'A' then
+                      '动态口令卡'
+                     when  'B' then
+                      '短信动态口令'
+                     when  'N' then
+                      'UKEY+短信动态口令'
+                     when  'C' then
+                      '证书方式'
+                     when 'E' then
+                      '动态口令卡'
+                     when  'U' then
+                      'Ukey'
+                     when 'F' then
+                      'Ukey＋动态口令卡'
+                     when  'L' then
+                      '动态令牌'
+                     when  'H' then
+                      'Ukey＋动态令牌'
+                     when  'T' then
+                      '广东行CCI的CTS客户'
+                     when  'S' then
+                      'UKEY＋二次短信确认'
+                     when  'R' then
+                      '刮刮卡+短信动态口令'
+                     when  'O' then
+                      '高端版二代网银盾'
+                     when  'D' then
+                      '二代网银盾'
+                     else
+                      '其它'
+                   end as 客户签约类型,
+                   t3.CHN_NO,
+                   t1.ECTIP_CUST_NO,
+                   t1.DCC_CUSTNO
+              from BF_PR_IND_INFO_ECTIP t1,
+                   BF_AGT_CHN_CHNP_CUST t2,
+                   (select ECTIP_CUST_NO, CHN_NO, count(*) as total
+                      from BF_EVT_CHN_CHN_TRAD
+                     where FLAT_TRAD_DT >= #{startDate}
+                       and CHN_NO in ('01','02')
+                       and AMT1 > '0'
+                       and ECTIP_CUST_NO in
+                           (select ECTIP_CUST_NO
+                              from BF_AGT_CHN_CHNP_CUST
+                             where SIGN_DT >= #{startDate})
+                     group by ECTIP_CUST_NO, CHN_NO) t3
+             where t1.ECTIP_CUST_NO = t2.ECTIP_CUST_NO
+               and t1.ECTIP_CUST_NO = t3.ECTIP_CUST_NO
+               and t2.SIGN_DT >= #{startDate}
+             group by t2.SIGN_INSTN,
+                      t1.CUST_NAME,
+                      t1.CERT_NO,
+                      t2.SIGN_DT,
+                      t1.VC_MOBILENO,
+                      t2.ENTRY_TMS,
+                      t3.total,
+                      t2.AUTH_TYPE,
+                      t1.CERT_TYPE,
+                      t3.CHN_NO,
+                      t1.ECTIP_CUST_NO,
+                      t1.DCC_CUSTNO
+           )t
+        )
+        ]]>
+    </insert>
+
+
+    <!--代发交易明细  -->
+    <delete id="deleteData_RptA11V1" parameterType="java.lang.String">
+        <![CDATA[
+          delete from ODSB_PAYAGENT_TXN  where CR_TX_DT between #{startDate} and #{endDate}
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA11V1" parameterType="java.lang.String">
+        <![CDATA[
+        insert into  ODSB_PAYAGENT_TXN t
+        SELECT ACCT_NAME,
+               ACCT_NO,
+               INST_NO,
+               ACCT_NAME1,
+               SIGN_INSTN,
+               CHN_NO,
+               ACCT_NO1,
+               CHN_CUST_NO,
+               AG_BSC_EXP,
+               CR_TX_DT,
+               '',
+               sys_guid()
+          FROM (SELECT /*+parallel(a2,5)(a3,5)*/
+                DISTINCT A2.ACCT_NAME,
+                         A2.ACCT_NO,
+                         A3.INST_NO,
+                         A1.ACCT_NAME AS ACCT_NAME1,
+                         A5.SIGN_INSTN,
+                         '一点式接入' AS CHN_NO,
+                         '' AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         A2.AG_BSC_EXP,
+                         A1.CR_TX_DT
+                  FROM BF_EVT_ECTIP_BATCH_PD_TASK A1,
+                       BF_EVT_ECTIP_BATCH_PD_RESP_DTL A2,
+                       BF_AGT_DEP_ACCT_SAP A3,
+                       BF_AGT_CHN_CHNP_ACCT A4,
+                       BF_AGT_CHN_CHNP_CUST A5
+                 WHERE A1.CHANL_FLOW_NO = A2.CHANL_FLOW_NO
+                   AND A2.ACCT_NO = A4.ACCT_NO(+)
+                   AND SUBSTR(A2.ACCT_NO, 1, 3) <> '239'
+                   AND A2.ACCT_NO = A3.CRD_NO(+)
+                   AND A4.ECTIP_CUST_NO = A5.ECTIP_CUST_NO
+                   AND A1.XT_BUSN_TYPE = '0'
+                   AND A1.CR_TX_DT >= #{startDate}
+                   AND A4.CHN_NO = '01'
+                   AND A5.CHN_NO = '01'
+                   AND A1.ACCT_NO NOT IN
+                       ('37101002710050033780', '37101002710050032264')
+                UNION
+                SELECT /*+parallel(a2,5)(a3,5)*/
+                DISTINCT A2.ACCT_NAME,
+                         A2.ACCT_NO,
+                         A3.INST_NO,
+                         A1.ACCT_NAME AS ACCT_NAME1,
+                         A5.SIGN_INSTN,
+                         '一点式接入' AS CHN_NO,
+                         '' AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         A2.AG_BSC_EXP,
+                         A1.CR_TX_DT
+                  FROM BF_EVT_ECTIP_BATCH_PD_TASK A1,
+                       BF_EVT_ECTIP_BATCH_PD_RESP_DTL A2,
+                       BF_AGT_DEP_ACCT_SAP A3,
+                       BF_AGT_CHN_CHNP_ACCT A4,
+                       BF_AGT_CHN_CHNP_CUST A5
+                 WHERE A1.CHANL_FLOW_NO = A2.CHANL_FLOW_NO
+                   AND A2.ACCT_NO = A4.ACCT_NO(+)
+                   AND SUBSTR(A2.ACCT_NO, 1, 3) = '239'
+                   AND A2.ACCT_NO = A3.CUST_ACCT_NO(+)
+                   AND A4.ECTIP_CUST_NO = A5.ECTIP_CUST_NO
+                   AND A1.XT_BUSN_TYPE = '0'
+                   AND A1.CR_TX_DT >= #{startDate}
+                   AND A4.CHN_NO = '01'
+                   AND A5.CHN_NO = '01'
+                   AND A1.ACCT_NO NOT IN
+                       ('37101002710050033780', '37101002710050032264')
+                UNION
+                SELECT /*+parallel(b2,5)(b3,5)*/
+                DISTINCT B3.CUST_NAME,
+                         B2.CONTRACT_FLAG_NO AS ACCT_NO,
+                         B3.INST_NO,
+                         B4.CORP_NAME AS ACCT_NAME1,
+                         B1.SIGN_ORG_CD AS SIGN_INSTN,
+                         '批量代收付' AS CHN_NO,
+                         B1.ENTR_NO AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         B2.CR_AMT AS AG_BSC_EXP,
+                         B1.CR_TX_DT
+                  FROM BF_EVT_CBPS_DATA_BATCH_INFO B1,
+                       BF_EVT_CBPS_DATA_TRADE      B2,
+                       BF_AGT_DEP_ACCT_SAP         B3,
+                       BF_PR_CBPS_CORP_INFO        B4
+                 WHERE B1.CBPS_BAT_NO = B2.CBPS_BAT_NO
+                   AND SUBSTR(B2.CONTRACT_FLAG_NO, 1, 3) <> '239'
+                   AND B2.CONTRACT_FLAG_NO = B3.CRD_NO
+                   AND B1.ENTR_NO = B4.ENTR_NO
+                   AND B1.BUSITYPE = 'P'
+                   AND B1.ODS_SRC_SYS_NO = 'CBPS'
+                   AND B2.FAIL_CODE = 'I'
+                   AND B2.ODS_SRC_SYS_NO = 'CBPS'
+                   AND B1.CR_TX_DT >= #{startDate}
+                UNION
+                SELECT /*+parallel(b2,5)(b3,5)*/
+                DISTINCT B3.CUST_NAME,
+                         B2.CONTRACT_FLAG_NO AS ACCT_NO,
+                         B3.INST_NO,
+                         B4.CORP_NAME AS ACCT_NAME1,
+                         B1.SIGN_ORG_CD AS SIGN_INSTN,
+                         '批量代收付' AS CHN_NO,
+                         B1.ENTR_NO AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         B2.CR_AMT AS AG_BSC_EXP,
+                         B1.CR_TX_DT
+                  FROM BF_EVT_CBPS_DATA_BATCH_INFO B1,
+                       BF_EVT_CBPS_DATA_TRADE      B2,
+                       BF_AGT_DEP_ACCT_SAP         B3,
+                       BF_PR_CBPS_CORP_INFO        B4
+                 WHERE B1.CBPS_BAT_NO = B2.CBPS_BAT_NO
+                   AND SUBSTR(B2.CONTRACT_FLAG_NO, 1, 3) = '239'
+                   AND B2.CONTRACT_FLAG_NO = B3.CUST_ACCT_NO
+                   AND B1.ENTR_NO = B4.ENTR_NO
+                   AND B1.BUSITYPE = 'P'
+                   AND B1.ODS_SRC_SYS_NO = 'CBPS'
+                   AND B2.FAIL_CODE = 'I'
+                   AND B2.ODS_SRC_SYS_NO = 'CBPS'
+                   AND B1.CR_TX_DT >= #{startDate}
+                UNION
+                SELECT /*+parallel(c1,5)(c2,5)*/
+                DISTINCT C2.CUST_NAME,
+                         C1.CONTRACT_NO AS ACCT_NO,
+                         C2.INST_NO,
+                         '' AS ACCT_NAME1,
+                         C4.SIGN_BRANCH AS SIGN_INSTN,
+                         '非一点式接入' AS CHN_NO,
+                         '' AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         C1.TRAN_AMT AS AG_BSC_EXP,
+                         TO_CHAR(C1.TX_DT, 'YYYY-mm-dd') AS CR_TX_DT
+                  FROM B_F_NIN_AGT_BAT_TRAN C1,
+                       BF_AGT_DEP_ACCT_SAP  C2,
+                       B_F_AGT_BAT_CUSTINFO C4
+                 WHERE SUBSTR(C1.CONTRACT_NO, 1, 3) <> '239'
+                   AND C1.CONTRACT_NO = C2.CRD_NO
+                   AND C1.CONTRACT_NO = C4.SIGN_ACCT_NO
+                   AND C1.PAY_FLAG = '1'
+                   AND TO_CHAR(C1.TX_DT, 'YYYY-mm-dd') >= #{startDate}
+                UNION
+                SELECT /*+parallel(c1,5)(c2,5)*/
+                DISTINCT C2.CUST_NAME,
+                         C1.CONTRACT_NO AS ACCT_NO,
+                         C2.INST_NO,
+                         '' AS ACCT_NAME1,
+                         C4.SIGN_BRANCH AS SIGN_INSTN,
+                         '非一点式接入' AS CHN_NO,
+                         '' AS ACCT_NO1,
+                         '' AS CHN_CUST_NO,
+                         C1.TRAN_AMT AS AG_BSC_EXP,
+                         TO_CHAR(C1.TX_DT, 'YYYY-mm-dd') AS CR_TX_DT
+                  FROM B_F_NIN_AGT_BAT_TRAN C1,
+                       BF_AGT_DEP_ACCT_SAP  C2,
+                       B_F_AGT_BAT_CUSTINFO C4
+                 WHERE SUBSTR(C1.CONTRACT_NO, 1, 3) = '239'
+                   AND C1.CONTRACT_NO = C2.CUST_ACCT_NO
+                   AND C1.CONTRACT_NO = C4.SIGN_ACCT_NO
+                   AND C1.PAY_FLAG = '1'
+                   AND TO_CHAR(C1.TX_DT, 'YYYY-mm-dd') >= #{startDate})
+         ORDER BY ACCT_NO1
+        ]]>
+    </insert>
+
+
+    <!--CTS保证金余额明细表  -->
+    <delete id="deleteData_RptA12V1">
+        <![CDATA[
+          delete from ODSB_CTS_BAL
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA12V1">
+        <![CDATA[
+        insert into  ODSB_CTS_BAL t
+        SELECT /*+parallel(t1,5)(t3,5)(t4,5)*/
+             sys_guid(),
+             T2.CM_OPUN_FLNM_CHN,
+             T2.OPR_UNIT_CD,
+             T1.CUST_NAME,
+             CASE
+               WHEN SUBSTR(T1.SAVACCTID, 1, 3) = '239' AND
+                    SUBSTR(T1.BANK_ACCT_INSTN_NUM, 1, 3) = '371' THEN
+                T3.CUST_NO
+               WHEN SUBSTR(T1.SAVACCTID, 1, 3) <> '239' AND
+                    SUBSTR(T1.BANK_ACCT_INSTN_NUM, 1, 3) = '371' THEN
+                T4.CUST_NO
+               ELSE
+                ''
+             END AS CUST_NO,
+             (SELECT CUST_MOBIL
+                FROM BF_AGT_NIN_CTS_CTSINVESTDATA
+               WHERE T1.SECACCT = SECACCT) AS CUST_MOBIL,
+             T1.CURRENT_BAL,
+             T1.SAVACCTID,
+             CASE
+               WHEN SUBSTR(T1.SAVACCTID, 1, 3) = '239' AND
+                    SUBSTR(T1.BANK_ACCT_INSTN_NUM, 1, 3) = '371' THEN
+                T3.ACCT_BAL
+               WHEN SUBSTR(T1.SAVACCTID, 1, 3) <> '239' AND
+                    SUBSTR(T1.BANK_ACCT_INSTN_NUM, 1, 3) = '371' THEN
+                T4.ACCT_BAL
+               ELSE
+                NULL
+             END AS ACCT_BAL
+              FROM (SELECT SECACCT,
+                           CUST_NAME,
+                           SAVACCTID,
+                           CURRENT_BAL,
+                           BANK_ACCT_INSTN_NUM
+                      FROM BF_AGT_NIN_CTS_CTSACCOUNTDATA
+                     WHERE LENGTH(SAVACCTID) <> 1
+                       AND ACCT_STS = '0'
+                       AND CUST_TYP = '1'
+                       and CURRENT_BAL >= 50000) T1
+              LEFT JOIN BF_PR_BR_INSTN T2 ON T1.BANK_ACCT_INSTN_NUM = T2.OPR_UNIT_CD
+              LEFT JOIN BF_AGT_DEP_ACCT_SAP T3 ON T1.SAVACCTID = T3.CUST_ACCT_NO
+              LEFT JOIN BF_AGT_DEP_ACCT_SAP T4 ON T1.SAVACCTID = T4.CRD_NO
+            UNION
+            SELECT
+                  sys_guid(),
+                   '' AS CM_OPUN_FLNM_CHN,
+                   '' AS OPR_UNIT_CD,
+                   T1.CUST_NAME,
+                   '' AS CUST_NO,
+                   T2.CUST_MOBIL,
+                   T1.CURRENT_BAL,
+                   '' AS SAVACCTID,
+                   NULL AS ACCT_BAL
+              FROM BF_AGT_NIN_CTS_CTSACCOUNTDATA T1, BF_AGT_NIN_CTS_CTSINVESTDATA T2
+             WHERE T1.SECACCT = T2.SECACCT
+               AND LENGTH(T1.SAVACCTID) = 1
+               AND T1.ACCT_STS = '0'
+               AND T1.CUST_TYP = '1'
+               and CURRENT_BAL >= 50000
+        ]]>
+    </insert>
+    <!--结算通卡余额明细表  -->
+    <delete id="deleteData_RptA13V1">
+        <![CDATA[
+          delete from ODSB_STLCRD_BAL
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA13V1">
+        <![CDATA[
+        insert into  ODSB_STLCRD_BAL t
+            select /*+parallel(t1,5)(t3,5)*/
+            distinct sys_guid(),
+                     t2.cm_opun_flnm_chn as 所属网点,
+                     t1.inst_no as 所属网点编号,
+                     t1.cust_name as 客户姓名,
+                     t1.cust_no as 客户编号,
+                     t4.no_body as 客户联系电话,
+                     t1.crd_no as 结算通卡卡号,
+                     t1.acct_bal as 结算通卡余额,
+                     t1.cust_open_dt as 开卡时间,
+                     decode(t1.acct_sts,
+                            '101',
+                            '正常',
+                            '103',
+                            '冻结',
+                            '105',
+                            '单向冻结',
+                            '108',
+                            '结清') as 卡状态
+              from BF_AGT_DEP_ACCT_SAP         t1,
+                   BF_PR_BR_INSTN              t2,
+                   BF_PR_IND_PARTY_CROSS_INDEX t3,
+                   BF_PR_IND_CONTACT_ADDR      t4
+             where t1.inst_no = t2.opr_unit_cd
+               and substr(t1.crd_no, 1, 6) = '622707'
+               and t1.cust_no = t3.ext_system_index
+               and t3.p_cust_no = t4.p_cust_no
+               order by t1.cust_no
+              ]]>
+    </insert>
+</mapper>
