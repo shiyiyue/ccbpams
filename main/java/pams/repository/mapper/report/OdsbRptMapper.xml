@@ -304,4 +304,44 @@
        ]]>
     </select>
 
+
+    <!-- 综合报表：结算通卡余额明细表 RPTA13V1 -->
+    <sql id="RptA14V1_Where_Clause">
+        <where>
+            a.inst_no in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " custName != null and custName != '' ">
+                and a.cust_name like '%${custName}%'
+            </if>
+        </where>
+    </sql>
+
+    <!--计算符合查询条件的记录数  -->
+    <select id="countRptA14V1Records" parameterType="pams.repository.model.report.BasePagedQryParamBean" resultType="java.lang.Integer">
+        select count(*)
+        from ODSB_GRB_NEWCUST a
+        <include refid="RptA14V1_Where_Clause" />
+    </select>
+
+    <select id="selectRptA14V1Records"  parameterType="pams.repository.model.report.BasePagedQryParamBean" resultMap="pams.repository.dao.OdsbGrbNewcustMapper.BaseResultMap">
+        select *
+        from (select t1.*, rownum rnum
+        from (
+        select  *
+        from ODSB_GRB_NEWCUST a
+        <include refid="RptA14V1_Where_Clause" />
+        order by
+        <if test = " sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test = " sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , rowid
+        ) t1
+        <![CDATA[
+        where rownum <= #{pagesize}) t2
+       where t2.rnum > #{offset}
+       ]]>
+    </select>
+
 </mapper>

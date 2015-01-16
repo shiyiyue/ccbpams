@@ -40,4 +40,11 @@ public interface DataETLMapper {
     //结算通卡余额明细表
     int deleteData_RptA13V1();
     int importRecords_RptA13V1();
+
+    //个金部新开户客户明细导入  20150115 zr
+    int deleteData_RptA14V1_tmp();
+    int importRecords_RptA14V1_tmp(@Param("startDate")String startDate);
+    int deleteData_RptA14V1();
+    int importRecords_RptA14V1(@Param("startDate")String startDate);
+
 }

@@ -134,10 +134,14 @@ public class UserDefRptService {
 
 
     //Table def info
-    public List<ClsUdTblinfo> selectTblInfos() {
+    public List<ClsUdTblinfo> selectTblInfos(boolean isPvtRpt) {
         ClsUdTblinfoExample example = new ClsUdTblinfoExample();
         //example.createCriteria().andStatusEqualTo("0");
-        example.createCriteria();
+        if (isPvtRpt)
+            example.createCriteria().andRptnoNotLike("E%");
+        else
+            example.createCriteria().andRptnoLike("E%");
+
         example.setOrderByClause(" rptno desc");
 
         return tblinfoMapper.selectByExample(example);

@@ -555,4 +555,59 @@
                order by t1.cust_no
               ]]>
     </insert>
+
+    <!--个金部新开户客户明细导入  20150115 zr  -->
+    <delete id="deleteData_RptA14V1">
+        <![CDATA[
+          truncate table  ODSB_GRB_NEWCUST
+        ]]>
+    </delete>
+    <delete id="deleteData_RptA14V1_tmp">
+        <![CDATA[
+          truncate table  ODSB_TMP_GRB_NEWCUST
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA14V1_tmp">
+        <![CDATA[
+        Insert /*+ append parallel(t1,8) */
+        Into odsb_tmp_grb_newcust
+          Select /*+parallel(A1,8)(A2,8) */
+           A1.Crd_No
+            From Bf_Agt_Dep_Acct_Sap A1, Bf_Agt_Crd_Dbt A2
+           Where Trim(A1.Crd_No) Is Not Null
+             And A1.Cust_Open_Dt >= #{startDate}
+             And substr(A2.Crd_No, 1, 9) = '622280239'
+             And A2.Crd_No = A1.Crd_No
+             And ((A2.Crd_Typ_Cd = '1200' And A2.Jont_Cd = '3702' And
+                  A2.Agre_Cod in ('0001', '0002') And A2.Spus_Cd = '0005'))
+        ]]>
+    </insert>
+    <insert id="importRecords_RptA14V1">
+        <![CDATA[
+        insert into  odsb_grb_newcust t
+        Select /*+parallel(a,8)(b,8) */
+         a.Cust_Name,
+         b.Cert_No,
+         a.Cust_Acct_No,
+         a.crd_no,
+         a.CUST_OPEN_DT,
+         a.Acct_Bal,
+         a.Inst_No,
+         Case
+           When a.crd_no In (Select crd_no From odsb_tmp_grb_newcust) Then
+            '公积金卡'
+           When substr(a.crd_no, 1, 8) = '62146723' Then
+            '社保龙卡'
+           Else
+            '其他'
+         End "CRD_TYP",
+         b.no_body
+          From BF_AGT_DEP_ACCT_SAP a,
+               (Select C1.Cert_No, c2.No_Body, c1.Cust_No
+                  From TMP_CUST2CERT_TRANS c1, TMP_ECIF_PHONE c2
+                 where c1.cert_no = c2.cert_no(+)) b
+         Where CUST_OPEN_DT >= #{startDate}
+           And a.Cust_No = b.cust_no
+         ]]>
+    </insert>
 </mapper>

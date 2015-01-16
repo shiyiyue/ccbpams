@@ -138,6 +138,16 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+    public String onProcessRptA14V1Data() {
+        try {
+            dataETLService.importData_RptA14V1(currYearStartdate);
+            MessageUtil.addInfo("数据处理完成...");
+        } catch (Exception ex) {
+            logger.error("数据处理错误。", ex);
+            MessageUtil.addError("数据处理错误。" + ex.getMessage());
+        }
+        return null;
+    }
 
     private String checkAndTransInputDate() {
         Date date = null;

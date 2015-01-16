@@ -45,6 +45,7 @@ public class UserDefRptMngAction implements Serializable {
     private boolean isBizBranch; //是否业务网点
     private String title = "...";
     private String rptno;
+    private boolean isPvtRpt = true;  //默认对私报表
     private String operation = "create"; // create update clear
     private UploadedFile uploadedFile;
 
@@ -69,12 +70,34 @@ public class UserDefRptMngAction implements Serializable {
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rptno = StringUtils.isEmpty(paramsMap.get("rptno")) ? "" : paramsMap.get("rptno");
 
+        if (!StringUtils.isEmpty(paramsMap.get("rptno"))) {
+            if (rptno.startsWith("E")) {
+                isPvtRpt = false;
+            }
+        } else {
+            String rpttype = StringUtils.isEmpty(paramsMap.get("type")) ? "" : paramsMap.get("type");
+            if ("E".equalsIgnoreCase(rpttype)) {
+                isPvtRpt = false;
+            }
+        }
+
+        if (isPvtRpt) {
+            title = "阶段性攻坚活动报表";
+        } else {
+            title = "对公客户营销数据报表";//对公
+        }
+
         //HttpServletRequest request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
-        detlRecords = userDefRptService.selectTblInfos();
+        detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
     }
 
     public void onCreateRpt() {
         try {
+            if (!isPvtRpt) {
+                if (!clsUdTblinfo.getRptno().startsWith("E")) {
+                    clsUdTblinfo.setRptno("E" + clsUdTblinfo.getRptno());
+                }
+            }
             //检查KEY重复
             ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo.getRptno());
             if (tbl_db != null) {
@@ -86,7 +109,7 @@ public class UserDefRptMngAction implements Serializable {
             clsUdTblinfo.setRemark(new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "新增,操作人:" + operid);
             clsUdTblinfo.setRecver(1);
             userDefRptService.insertTblInfo(clsUdTblinfo);
-            detlRecords = userDefRptService.selectTblInfos();
+            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
             clsUdTblinfo = new ClsUdTblinfo();
 
 
@@ -110,7 +133,7 @@ public class UserDefRptMngAction implements Serializable {
             }
 
             userDefRptService.modifyTblInfo(clsUdTblinfo);
-            detlRecords = userDefRptService.selectTblInfos();
+            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
             clsUdTblinfo = new ClsUdTblinfo();
             operation = "create";
             RequestContext.getCurrentInstance().execute("document.forms['form']['form:tabview:rptnoInput'].disabled = false;");
@@ -140,7 +163,7 @@ public class UserDefRptMngAction implements Serializable {
                 return;
             }
             userDefRptService.clearAllRptInfo(clsUdTblinfo.getRptno());
-            detlRecords = userDefRptService.selectTblInfos();
+            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
             clsUdTblinfo = new ClsUdTblinfo();
             operation = "create";
 

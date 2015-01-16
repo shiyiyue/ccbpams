@@ -35,7 +35,6 @@ import java.util.Map;
  */
 @ManagedBean
 @ViewScoped
-//@RequestScoped
 public class DataImportAction implements Serializable {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -77,7 +76,7 @@ public class DataImportAction implements Serializable {
             XSSFWorkbook wb = new XSSFWorkbook(is);
             XSSFSheet sheet = wb.getSheetAt(0);
 
-            rowcount = sheet.getLastRowNum();
+            rowcount = sheet.getLastRowNum() + 1;
 
             //清理原有 字段定义
             userDefRptService.clearColumnNames(rptno);

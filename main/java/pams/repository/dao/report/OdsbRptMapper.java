@@ -37,4 +37,7 @@ public interface OdsbRptMapper {
     //综合报表：结算通卡余额明细表 RPTA13V1
     int countRptA13V1Records(BasePagedQryParamBean paramBean);
     List<OdsbStlcrdBal> selectRptA13V1Records(BasePagedQryParamBean paramBean);
+    //综合报表：个金部新开户明细 RPTA14V1
+    int countRptA14V1Records(BasePagedQryParamBean paramBean);
+    List<OdsbGrbNewcust> selectRptA14V1Records(BasePagedQryParamBean paramBean);
 }
