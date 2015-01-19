@@ -607,7 +607,7 @@
                   From TMP_CUST2CERT_TRANS c1, TMP_ECIF_PHONE c2
                  where c1.cert_no = c2.cert_no(+)) b
          Where CUST_OPEN_DT >= #{startDate}
-           And a.Cust_No = b.cust_no
+           And a.Cust_No = b.cust_no(+)
          ]]>
     </insert>
 </mapper>
