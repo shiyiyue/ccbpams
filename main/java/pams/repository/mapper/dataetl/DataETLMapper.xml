@@ -569,45 +569,115 @@
     </delete>
     <insert id="importRecords_RptA14V1_tmp">
         <![CDATA[
-        Insert /*+ append parallel(t1,8) */
-        Into odsb_tmp_grb_newcust
-          Select /*+parallel(A1,8)(A2,8) */
-           A1.Crd_No
-            From Bf_Agt_Dep_Acct_Sap A1, Bf_Agt_Crd_Dbt A2
-           Where Trim(A1.Crd_No) Is Not Null
-             And A1.Cust_Open_Dt >= #{startDate}
-             And substr(A2.Crd_No, 1, 9) = '622280239'
-             And A2.Crd_No = A1.Crd_No
-             And ((A2.Crd_Typ_Cd = '1200' And A2.Jont_Cd = '3702' And
-                  A2.Agre_Cod in ('0001', '0002') And A2.Spus_Cd = '0005'))
+        insert /*+ append parallel(t1,8) */
+        into odsb_tmp_grb_newcust
+          select /*+parallel(a1,8)(a2,8) */
+           a1.crd_no
+            from bf_agt_dep_acct_sap a1, bf_agt_crd_dbt a2
+           where trim(a1.crd_no) is not null
+             and a1.cust_open_dt >= #{startDate}
+             and substr(a2.crd_no, 1, 9) = '622280239'
+             and a2.crd_no = a1.crd_no
+             and ((a2.crd_typ_cd = '1200' and a2.jont_cd = '3702' and
+                  a2.agre_cod in ('0001', '0002') and a2.spus_cd = '0005'))
         ]]>
     </insert>
     <insert id="importRecords_RptA14V1">
         <![CDATA[
         insert into  odsb_grb_newcust t
-        Select /*+parallel(a,8)(b,8) */
-         a.Cust_Name,
-         b.Cert_No,
-         a.Cust_Acct_No,
+        select /*+parallel(a,8)(b,8) */
+         a.cust_name,
+         b.cert_no,
+         a.cust_acct_no,
          a.crd_no,
-         a.CUST_OPEN_DT,
-         a.Acct_Bal,
-         a.Inst_No,
-         Case
-           When a.crd_no In (Select crd_no From odsb_tmp_grb_newcust) Then
+         a.cust_open_dt,
+         a.acct_bal,
+         a.inst_no,
+         case
+           when a.crd_no in (select crd_no from odsb_tmp_grb_newcust) then
             '公积金卡'
-           When substr(a.crd_no, 1, 8) = '62146723' Then
+           when substr(a.crd_no, 1, 8) = '62146723' then
             '社保龙卡'
-           Else
+           else
             '其他'
-         End "CRD_TYP",
+         end "crd_typ",
          b.no_body
-          From BF_AGT_DEP_ACCT_SAP a,
-               (Select C1.Cert_No, c2.No_Body, c1.Cust_No
-                  From TMP_CUST2CERT_TRANS c1, TMP_ECIF_PHONE c2
+          from bf_agt_dep_acct_sap a,
+               (select c1.cert_no, c2.no_body, c1.cust_no
+                  from tmp_cust2cert_trans c1, tmp_ecif_phone c2
                  where c1.cert_no = c2.cert_no(+)) b
-         Where CUST_OPEN_DT >= #{startDate}
-           And a.Cust_No = b.cust_no(+)
+         where cust_open_dt >= #{startDate}
+           and a.cust_no = b.cust_no(+)
          ]]>
+    </insert>
+
+
+    <!--电子银行部新签约客户签约当日的交易笔数数据导入  20150130 zr  -->
+    <select id="selectCurrDate_RptA15V1" resultType="java.lang.String">
+        <![CDATA[
+          select max(sign_dt) from ODSB_EBANK_SIGN t
+        ]]>
+    </select>
+    <select id="selectLastDate_RptA15V1_ODSB" resultType="java.lang.String">
+        <![CDATA[
+
+        ]]>
+    </select>
+    <delete id="deleteData_RptA15V1">
+        <![CDATA[
+          delete from  ODSB_EBANK_SIGN where SIGN_DATE >= #{startDate}
+        ]]>
+    </delete>
+    <insert id="importRecords_RptA15V1">
+        <![CDATA[
+        insert into odsb_ebank_sign
+          select /*+parallel(t2,8) */
+           t1.ectip_cust_no,
+           t1.cert_no,
+           t1.cust_name,
+           t1.sign_dt,
+           t1.sign_instn,
+           t1.chn_no,
+           case
+             when t3.transcount >= 1 then
+              t3.transcount
+             else
+              0
+           end "seqcount"
+            from (select /*+parallel(b,8)(a,8) */
+                   b.ectip_cust_no,
+                   a.cert_no,
+                   a.cust_name,
+                   b.sign_dt,
+                   b.sign_instn,
+                   b.chn_no
+                    from bf_agt_chn_chnp_cust b, bf_pr_ind_info_ectip a
+                   where b.sign_dt = #{startDate}
+                     and b.chn_no in ('01', '02')
+                     and a.ectip_cust_no = b.ectip_cust_no) t1,
+                 (select /*+parallel(t1,8)(t2,8) */
+                   t2.ectip_cust_no, t2.chn_no, count(t2.seq_no) as transcount
+                    from (select /*+parallel(b,8)(a,8) */
+                           b.ectip_cust_no,
+                           a.cert_no,
+                           a.cust_name,
+                           b.sign_dt,
+                           b.sign_instn,
+                           b.chn_no
+                            from bf_agt_chn_chnp_cust b, bf_pr_ind_info_ectip a
+                           where b.sign_dt = #{startDate}
+                             and b.chn_no in ('01', '02')
+                             and a.ectip_cust_no = b.ectip_cust_no) t1,
+                         bf_evt_chn_chn_trad t2
+                   where t1.ectip_cust_no = t2.ectip_cust_no
+                     and t1.chn_no = t2.chn_no
+                     and t1.sign_dt = t2.flat_trad_dt
+                     and t2.tx_flg = '00'
+                     and t2.flat_trad_dt = #{startDate}
+                   group by t2.ectip_cust_no, t2.chn_no) t3
+           where t1.ectip_cust_no = t3.ectip_cust_no(+)
+             and t1.chn_no = t3.chn_no(+)
+           order by t3.ectip_cust_no
+        ]]>
     </insert>
 </mapper>

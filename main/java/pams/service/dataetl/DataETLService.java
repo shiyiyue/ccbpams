@@ -1,5 +1,7 @@
 package pams.service.dataetl;
 
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +110,30 @@ public class DataETLService {
         dataETLMapper.deleteData_RptA14V1();
         dataETLMapper.importRecords_RptA14V1_tmp(startDate);
         dataETLMapper.importRecords_RptA14V1(startDate);
+    }
+
+    //Rpt15 电子银行部新签约客户签约当日的交易笔数数据导入
+    public String selectCurrDate_RptA15V1(){
+        String lastDate = dataETLMapper.selectCurrDate_RptA15V1();
+        if (StringUtils.isEmpty(lastDate)) {
+            DateTime dt = new DateTime();
+            lastDate = dt.monthOfYear().withMinimumValue().dayOfMonth().withMinimumValue().toString("yyyy-MM-dd");
+        }
+        return lastDate;
+    }
+    public void importData_RptA15V1(String startDate){
+        dataETLMapper.deleteData_RptA15V1(startDate);
+
+        DateTime localCurrDate = new DateTime(selectCurrDate_RptA15V1());
+        DateTime odsbLastDate = new DateTime();
+        if (StringUtils.isEmpty(dataETLMapper.selectLastDate_RptA15V1_ODSB())) {
+            odsbLastDate = new DateTime();
+        }
+
+        while (localCurrDate.isBefore(odsbLastDate)){
+            dataETLMapper.importRecords_RptA15V1(localCurrDate.toString("yyyy-MM-dd"));
+            localCurrDate.plusDays(1);
+        }
     }
 
     //=====================================================================

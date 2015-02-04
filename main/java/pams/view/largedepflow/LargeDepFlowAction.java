@@ -79,8 +79,13 @@ public class LargeDepFlowAction implements Serializable {
 
         this.paramBean = new LargeDepFlowVO();
 
-        this.paramBean.setStartDate(new DateTime().dayOfMonth().withMinimumValue().toString("yyyy-MM-dd"));
-        this.paramBean.setEndDate(new DateTime().minusDays(1).toString("yyyy-MM-dd"));
+        DateTime startDate = new DateTime().dayOfMonth().withMinimumValue();
+        this.paramBean.setStartDate(startDate.toString("yyyy-MM-dd"));
+        DateTime endDate = new DateTime().minusDays(1);
+        if (startDate.isAfter(endDate)) {
+            endDate = startDate;
+        }
+        this.paramBean.setEndDate(endDate.toString("yyyy-MM-dd"));
     }
 
     public String onQuery() {

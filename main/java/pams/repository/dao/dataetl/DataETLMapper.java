@@ -47,4 +47,11 @@ public interface DataETLMapper {
     int deleteData_RptA14V1();
     int importRecords_RptA14V1(@Param("startDate")String startDate);
 
+    //电子银行部新签约客户签约当日的交易笔数数据导入  20150130 zr
+    String selectCurrDate_RptA15V1();
+    String selectLastDate_RptA15V1_ODSB();//获取ODSB系统中相关数据的最大日期的前一天
+    int deleteData_RptA15V1(@Param("startDate")String startDate);
+    int importRecords_RptA15V1(@Param("startDate")String startDate);
+
+
 }

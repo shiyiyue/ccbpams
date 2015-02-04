@@ -1,0 +1,82 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/templates/ui.xhtml">
+
+<ui:define name="head">
+    <style type="text/css">
+        .ui-datatable-data tr {
+            height: 30px !important;
+        }
+
+        .odd-row {
+            text-align: center;
+            background: none repeat scroll 0 0 #FFFFFF;
+            border-top: 1px solid #BBBBBB;
+        }
+
+        .even-row {
+            text-align: center;
+            background: none repeat scroll 0 0 #F9F9F9;
+            border-top: 1px solid #BBBBBB;
+        }
+    </style>
+
+
+</ui:define>
+
+<ui:define name="content">
+    <div class="entry" id="top">
+        <h:form id="form">
+            <p:tabView id="tabview" dynamic="true" cache="false" style="font-weight:normal;font-style:normal">
+                <p:tab id="tab1" title="#{userDefRptMngAction.title}">
+                    <p:messages id="msgs" showDetail="true"/>
+                    <p:ajaxStatus style="height:10px;text-align:center">
+                        <f:facet name="start">
+                            <h:graphicImage value="/images/ajaxloadingbar.gif"/>
+                        </f:facet>
+                        <f:facet name="complete">
+                            <h:outputText value=""/>
+                        </f:facet>
+                    </p:ajaxStatus>
+
+
+                    <p:panel id="formpanel" style="width: 600px; margin-top: 20px">
+                        <h:panelGrid columns="1" cellspacing="5">
+                            <h:panelGrid columns="2" cellspacing="5">
+                                <h:outputLabel value="电话号码:"/>
+                                <p:inputText id="rptnoInput" value="#{userDefRptMngAction.clsUdTblinfo.rptno}"
+                                             style="width: 50px;"
+                                             onkeydown="KeyDown()"
+                                             required="true" requiredMessage="报表编号不能为空。"/>
+                                <h:outputLabel value="报表说明:"/>
+                                <p:inputText value="#{userDefRptMngAction.clsUdTblinfo.rptdesc}"
+                                             onkeydown="KeyDown()"
+                                             style="width: 400px;"/>
+                            </h:panelGrid>
+                            <h:panelGrid columns="3">
+                                <p:commandButton id="addbtn" style="width:150px;" value="新增报表定义确认"
+                                                 rendered="#{userDefRptMngAction.operation == 'create'}"
+                                                 action="#{userDefRptMngAction.onCreateRpt}"
+                                                 update="pdt,msgs,formpanel">
+                                </p:commandButton>
+                            </h:panelGrid>
+                        </h:panelGrid>
+
+                    </p:panel>
+
+                </p:tab>
+            </p:tabView>
+
+            <p:dialog Id="myDialog" widgetVar="myDialog" modal="true">
+                <p:outputPanel Id="myDialogPanel">
+                    <p:inputText value="............"/>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+    </div>
+</ui:define>
+
+</ui:composition>

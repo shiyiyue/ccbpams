@@ -40,4 +40,7 @@ public interface OdsbRptMapper {
     //综合报表：个金部新开户明细 RPTA14V1
     int countRptA14V1Records(BasePagedQryParamBean paramBean);
     List<OdsbGrbNewcust> selectRptA14V1Records(BasePagedQryParamBean paramBean);
+    //综合报表：电子银行部新签约客户签约当日的交易笔数数据 RPTA15V1
+    int countRptA15V1Records(BasePagedQryParamBean paramBean);
+    List<OdsbEbankSign> selectRptA15V1Records(BasePagedQryParamBean paramBean);
 }

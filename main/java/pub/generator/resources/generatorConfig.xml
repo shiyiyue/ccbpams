@@ -7,9 +7,11 @@
     <classPathEntry location="/workspace/syy-ccbpams/lib/ojdbc6.jar"/>
 
     <!--信息-->
+    <!--connectionURL="jdbc:oracle:thin:@localhost:1521:orcl"-->
+    <!--connectionURL="jdbc:oracle:thin:@48.0.191.158:1521:orcl"-->
     <context id="AllInfo" targetRuntime="MyBatis3">
         <jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
-                        connectionURL="jdbc:oracle:thin:@localhost:1521:orcl"
+                        connectionURL="jdbc:oracle:thin:@48.0.191.158:1521:orcl"
                         userId="pams"
                         password="pams">
         </jdbcConnection>
@@ -166,9 +168,10 @@
             <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
         </table>
         <table tableName="odsb_grb_newcust">
+        <table tableName="odsb_ebank_sign"/>
         </table>
 -->
-        <table tableName="odsb_grb_newcust"/>
+        <table tableName="odsb_ebank_sign"/>
 
     </context>
 

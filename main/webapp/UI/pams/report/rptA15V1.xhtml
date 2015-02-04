@@ -1,4 +1,4 @@
-<!-- 个金部新开户客户 -->
+<!-- 电子银行部新签约客户签约当日的交易笔数 -->
 <ui:composition xmlns="http://www.w3.org/1999/xhtml"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:f="http://java.sun.com/jsf/core"
@@ -24,26 +24,26 @@
             <h:form id="form">
                 <p:growl id="msgs" showDetail="false" life="1500"/>
                 <div id="header">
-                    <p:panel header="个金部新开户客户明细查询">
+                    <p:panel header="电子银行部新签约客户签约当日的交易笔数统计">
                         <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
                             <h:panelGrid columns="2" cellspacing="5">
                                 <h:outputLabel value="机构:"/>
                                 <h:selectOneMenu id="branchname" style="width:153px;"
-                                                 value="#{rptA14V1Action.paramBean.branchId}">
-                                    <f:selectItems value="#{rptA14V1Action.branchList}"/>
+                                                 value="#{rptA15V1Action.paramBean.branchId}">
+                                    <f:selectItems value="#{rptA15V1Action.branchList}"/>
                                 </h:selectOneMenu>
                                 <h:outputLabel value="客户姓名:"/>
-                                <p:inputText value="#{rptA14V1Action.paramBean.custName}"/>
+                                <p:inputText value="#{rptA15V1Action.paramBean.custName}"/>
                             </h:panelGrid>
                             <h:panelGrid>
                                 <p:commandButton id="qrybtn" style="width:90px;" value="查询"
-                                                 action="#{rptA14V1Action.onQuery}"
+                                                 action="#{rptA15V1Action.onQuery}"
                                                  update="pdt,msgs">
                                 </p:commandButton>
                                 <p:commandButton ajax="false" id="btnExport" value="导出EXCEL"
                                                  style="width:90px;">
                                     <p:dataExporter type="xls" target="pdt"
-                                                    fileName="rpt#{rptA14V1Action.paramBean.branchId}"
+                                                    fileName="rpt#{rptA15V1Action.paramBean.branchId}"
                                                     encoding="GBK"
                                                     pageOnly="false"/>
                                 </p:commandButton>
@@ -63,13 +63,19 @@
 
                 <p:dataTable id="pdt" style="width:100%;"
                              lazy="true"
-                             value="#{rptA14V1Action.lazyDataModel}" var="record"
+                             value="#{rptA15V1Action.lazyDataModel}" var="record"
                              paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
                              currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
                              paginator="true" rows="15"
                              paginatorPosition="bottom"
                              rowsPerPageTemplate="100,50,30,15,5"
                              emptyMessage="数据记录为空...">
+                    <p:column style="text-align:center" >
+                        <f:facet name="header">
+                            签约机构
+                        </f:facet>
+                        <h:outputText value="#{record.signInstn}"/>
+                    </p:column>
                     <p:column style="text-align:center">
                         <f:facet name="header">
                             客户姓名
@@ -84,45 +90,27 @@
                     </p:column>
                     <p:column style="text-align:center">
                         <f:facet name="header">
-                            客户账号
+                            客户号
                         </f:facet>
-                        <h:outputText value="#{record.custAcctNo}"/>
+                        <h:outputText value="#{record.ectipCustNo}"/>
                     </p:column>
                     <p:column style="text-align:center">
                         <f:facet name="header">
-                            卡号
+                            签约日期
                         </f:facet>
-                        <h:outputText value="#{record.crdNo}" />
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            开户日期
-                        </f:facet>
-                        <h:outputText value="#{record.custOpenDt}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            余额
-                        </f:facet>
-                        <h:outputText value="#{record.acctBal}" style="float:right"/>
+                        <h:outputText value="#{record.signDt}"/>
                     </p:column>
                     <p:column style="text-align:center" >
                         <f:facet name="header">
-                            网点编号
+                            签约渠道
                         </f:facet>
-                        <h:outputText value="#{record.instNo}"/>
+                        <h:outputText value="#{record.chnNo}"/>
                     </p:column>
                     <p:column style="text-align:center">
                         <f:facet name="header">
-                            卡种
+                            交易笔数
                         </f:facet>
-                        <h:outputText value="#{record.crdTyp}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            客户电话
-                        </f:facet>
-                        <h:outputText value="#{record.noBody}" />
+                        <h:outputText value="#{record.seqcount}"/>
                     </p:column>
                 </p:dataTable>
             </h:form>

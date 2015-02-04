@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
+import javax.servlet.http.HttpServletRequest;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,7 @@ public class DataETLAction implements Serializable {
 
     private String startdate;
     private String startdateRpt11;
+    private String startdateRpt15=""; //电子银行部新签约客户签约当日的交易笔数报表的最后导入日期
     private String enddate;
     private String enddateRpt11;
     private String largeStartdate;
@@ -54,6 +57,13 @@ public class DataETLAction implements Serializable {
         this.enddateRpt11 = dt.minusDays(1).toString("yyyy-MM-dd");
         this.largeStartdate = dt.minusDays(7).toString("yyyy-MM-dd");
         this.currYearStartdate = dt.monthOfYear().withMinimumValue().dayOfMonth().withMinimumValue().toString("yyyy-MM-dd");
+
+        //20150130
+        HttpServletRequest request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+
+        if (request.getServletPath().contains("A15V1")) {
+            this.startdateRpt15 = dataETLService.selectCurrDate_RptA15V1();
+        }
     }
 
     public String onProcessCustBase() {
@@ -141,6 +151,16 @@ public class DataETLAction implements Serializable {
     public String onProcessRptA14V1Data() {
         try {
             dataETLService.importData_RptA14V1(currYearStartdate);
+            MessageUtil.addInfo("数据处理完成...");
+        } catch (Exception ex) {
+            logger.error("数据处理错误。", ex);
+            MessageUtil.addError("数据处理错误。" + ex.getMessage());
+        }
+        return null;
+    }
+    public String onProcessRptA15V1Data() {
+        try {
+            dataETLService.importData_RptA15V1(startdateRpt15);
             MessageUtil.addInfo("数据处理完成...");
         } catch (Exception ex) {
             logger.error("数据处理错误。", ex);
@@ -246,5 +266,13 @@ public class DataETLAction implements Serializable {
 
     public void setEnddateRpt11(String enddateRpt11) {
         this.enddateRpt11 = enddateRpt11;
+    }
+
+    public String getStartdateRpt15() {
+        return startdateRpt15;
+    }
+
+    public void setStartdateRpt15(String startdateRpt15) {
+        this.startdateRpt15 = startdateRpt15;
     }
 }
