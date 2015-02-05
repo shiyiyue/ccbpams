@@ -620,24 +620,26 @@
     </select>
     <select id="selectLastDate_RptA15V1_ODSB" resultType="java.lang.String">
         <![CDATA[
-
+        select /*+parallel(t2,8) */
+         to_date(max(a.sign_dt), 'yyyy-mm-dd') - 1 as data_date
+          from bf_agt_chn_chnp_cust a
         ]]>
     </select>
     <delete id="deleteData_RptA15V1">
         <![CDATA[
-          delete from  ODSB_EBANK_SIGN where SIGN_DATE >= #{startDate}
+          delete from  ODSB_EBANK_SIGN where SIGN_DT > #{startDate}
         ]]>
     </delete>
     <insert id="importRecords_RptA15V1">
         <![CDATA[
         insert into odsb_ebank_sign
           select /*+parallel(t2,8) */
-           t1.ectip_cust_no,
-           t1.cert_no,
-           t1.cust_name,
-           t1.sign_dt,
-           t1.sign_instn,
-           t1.chn_no,
+           a1.ectip_cust_no,
+           a1.cert_no,
+           a1.cust_name,
+           a1.sign_dt,
+           a1.sign_instn,
+           a1.chn_no,
            case
              when t3.transcount >= 1 then
               t3.transcount
@@ -645,18 +647,22 @@
               0
            end "seqcount"
             from (select /*+parallel(b,8)(a,8) */
+                   b.sign_dt,
                    b.ectip_cust_no,
                    a.cert_no,
                    a.cust_name,
-                   b.sign_dt,
                    b.sign_instn,
                    b.chn_no
                     from bf_agt_chn_chnp_cust b, bf_pr_ind_info_ectip a
-                   where b.sign_dt = #{startDate}
+                   where b.sign_dt > #{startDate}
+                     and b.sign_dt <= #{endDate}
                      and b.chn_no in ('01', '02')
-                     and a.ectip_cust_no = b.ectip_cust_no) t1,
+                     and a.ectip_cust_no = b.ectip_cust_no) a1,
                  (select /*+parallel(t1,8)(t2,8) */
-                   t2.ectip_cust_no, t2.chn_no, count(t2.seq_no) as transcount
+                   t2.flat_trad_dt,
+                   t2.ectip_cust_no,
+                   t2.chn_no,
+                   count(t2.seq_no) as transcount
                     from (select /*+parallel(b,8)(a,8) */
                            b.ectip_cust_no,
                            a.cert_no,
@@ -665,7 +671,8 @@
                            b.sign_instn,
                            b.chn_no
                             from bf_agt_chn_chnp_cust b, bf_pr_ind_info_ectip a
-                           where b.sign_dt = #{startDate}
+                           where b.sign_dt > #{startDate}
+                             and b.sign_dt <= #{endDate}
                              and b.chn_no in ('01', '02')
                              and a.ectip_cust_no = b.ectip_cust_no) t1,
                          bf_evt_chn_chn_trad t2
@@ -673,11 +680,10 @@
                      and t1.chn_no = t2.chn_no
                      and t1.sign_dt = t2.flat_trad_dt
                      and t2.tx_flg = '00'
-                     and t2.flat_trad_dt = #{startDate}
-                   group by t2.ectip_cust_no, t2.chn_no) t3
-           where t1.ectip_cust_no = t3.ectip_cust_no(+)
-             and t1.chn_no = t3.chn_no(+)
+                   group by t2.ectip_cust_no, t2.chn_no, t2.flat_trad_dt) t3
+           where a1.ectip_cust_no = t3.ectip_cust_no(+)
+             and a1.chn_no = t3.chn_no(+)
            order by t3.ectip_cust_no
-        ]]>
+           ]]>
     </insert>
 </mapper>

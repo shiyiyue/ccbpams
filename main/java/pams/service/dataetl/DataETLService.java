@@ -37,18 +37,17 @@ public class DataETLService {
 
         //merge前对证件号为空的进行处理
         updateNullCertTypeRecords(rptDate, "居民身份证");
-        int cnt =  dataETLMapper.mergeCustBaseRecords(rptDate);
+        int cnt = dataETLMapper.mergeCustBaseRecords(rptDate);
         dataETLMapper.updateCustBaseRecords4CertInfo();
         return cnt;
     }
 
-    private int updateNullCertTypeRecords(String rptDate, String certType){
-         return dataETLMapper.updateNullCertTypeRecords(rptDate,certType);
+    private int updateNullCertTypeRecords(String rptDate, String certType) {
+        return dataETLMapper.updateNullCertTypeRecords(rptDate, certType);
     }
 
 
-
-    public void importLargeFlowRecords(String startDate){
+    public void importLargeFlowRecords(String startDate) {
         try {
             new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
         } catch (ParseException e) {
@@ -58,7 +57,7 @@ public class DataETLService {
         dataETLMapper.importLargeFlowRecords(startDate);
     }
 
-    public void importData_RptA07V1(String startDate){
+    public void importData_RptA07V1(String startDate) {
         try {
             new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
         } catch (ParseException e) {
@@ -67,7 +66,8 @@ public class DataETLService {
         dataETLMapper.deleteData_RptA07V1(startDate);
         dataETLMapper.importRecords_RptA07V1(startDate);
     }
-    public void importData_RptA08V1(String startDate){
+
+    public void importData_RptA08V1(String startDate) {
         try {
             new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
         } catch (ParseException e) {
@@ -76,7 +76,8 @@ public class DataETLService {
         dataETLMapper.deleteData_RptA08V1(startDate);
         dataETLMapper.importRecords_RptA08V1(startDate);
     }
-    public void importData_RptA11V1(String startDate, String endDate){
+
+    public void importData_RptA11V1(String startDate, String endDate) {
         try {
             new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
             new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
@@ -86,7 +87,8 @@ public class DataETLService {
         dataETLMapper.deleteData_RptA11V1(startDate, endDate);
         dataETLMapper.importRecords_RptA11V1(startDate, endDate);
     }
-    public void deleteData_RptA11V1(String startDate, String endDate){
+
+    public void deleteData_RptA11V1(String startDate, String endDate) {
         try {
             new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
             new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
@@ -95,17 +97,19 @@ public class DataETLService {
         }
         dataETLMapper.deleteData_RptA11V1(startDate, endDate);
     }
-    public void importData_RptA12V1(){
+
+    public void importData_RptA12V1() {
         dataETLMapper.deleteData_RptA12V1();
         dataETLMapper.importRecords_RptA12V1();
     }
-    public void importData_RptA13V1(){
+
+    public void importData_RptA13V1() {
         dataETLMapper.deleteData_RptA13V1();
         dataETLMapper.importRecords_RptA13V1();
     }
 
 
-    public void importData_RptA14V1(String startDate){
+    public void importData_RptA14V1(String startDate) {
         dataETLMapper.deleteData_RptA14V1_tmp();
         dataETLMapper.deleteData_RptA14V1();
         dataETLMapper.importRecords_RptA14V1_tmp(startDate);
@@ -113,7 +117,7 @@ public class DataETLService {
     }
 
     //Rpt15 电子银行部新签约客户签约当日的交易笔数数据导入
-    public String selectCurrDate_RptA15V1(){
+    public String selectCurrDate_RptA15V1() {
         String lastDate = dataETLMapper.selectCurrDate_RptA15V1();
         if (StringUtils.isEmpty(lastDate)) {
             DateTime dt = new DateTime();
@@ -121,7 +125,24 @@ public class DataETLService {
         }
         return lastDate;
     }
-    public void importData_RptA15V1(String startDate){
+
+    /*
+        public void importData_RptA15V1(String startDate){
+            dataETLMapper.deleteData_RptA15V1(startDate);
+
+            DateTime localCurrDate = new DateTime(selectCurrDate_RptA15V1());
+            DateTime odsbLastDate = new DateTime();
+            if (StringUtils.isEmpty(dataETLMapper.selectLastDate_RptA15V1_ODSB())) {
+                odsbLastDate = new DateTime();
+            }
+
+            while (localCurrDate.isBefore(odsbLastDate)){
+                dataETLMapper.importRecords_RptA15V1(localCurrDate.toString("yyyy-MM-dd"));
+                localCurrDate.plusDays(1);
+            }
+        }
+    */
+    public void importData_RptA15V1(String startDate) {
         dataETLMapper.deleteData_RptA15V1(startDate);
 
         DateTime localCurrDate = new DateTime(selectCurrDate_RptA15V1());
@@ -129,11 +150,7 @@ public class DataETLService {
         if (StringUtils.isEmpty(dataETLMapper.selectLastDate_RptA15V1_ODSB())) {
             odsbLastDate = new DateTime();
         }
-
-        while (localCurrDate.isBefore(odsbLastDate)){
-            dataETLMapper.importRecords_RptA15V1(localCurrDate.toString("yyyy-MM-dd"));
-            localCurrDate.plusDays(1);
-        }
+        dataETLMapper.importRecords_RptA15V1(localCurrDate.toString("yyyy-MM-dd"), odsbLastDate.toString("yyyy-MM-dd"));
     }
 
     //=====================================================================
