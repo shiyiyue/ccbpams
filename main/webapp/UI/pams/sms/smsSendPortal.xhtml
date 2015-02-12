@@ -16,9 +16,9 @@
     <ui:define name="content">
         <div class="entry" id="top">
             <h:form id="form">
-                <div style="margin-top: 0px;">
+                <div style="margin-top: 1px;">
                     <p:tabView dynamic="true" cache="false" style="font-weight:normal;font-style:normal">
-                        <p:tab title="#{userDefRptMngAction.title}">
+                        <p:tab title="#{mAPortalAction.title}">
                             <p:messages id="msgs" showDetail="true"/>
                             <p:ajaxStatus style="height:10px;text-align:center">
                                 <f:facet name="start">
@@ -30,7 +30,9 @@
                             </p:ajaxStatus>
 
                             <p:dataTable id="pdt" style="width:100%;margin-top: 10px;margin-bottom: 10px"
-                                         value="#{userDefRptMngAction.detlRecords}" var="record"
+                                         value="#{mAPortalAction.mainDetls}" var="record"
+                                         selectionMode="single" selection="#{mAPortalAction.selectedMain}"
+                                         rowKey="#{record.actino}"
                                          paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
                                          currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
                                          paginator="true" rows="15"
@@ -40,15 +42,15 @@
 
                                 <p:column style="text-align:center">
                                     <f:facet name="header">
-                                        报表编号
+                                        营销活动编号
                                     </f:facet>
-                                    <h:outputText value="#{record.rptno}"/>
+                                    <h:outputText value="#{record.actino}"/>
                                 </p:column>
                                 <p:column style="text-align:center">
                                     <f:facet name="header">
-                                        报表名称
+                                        营销活动名称
                                     </f:facet>
-                                    <h:outputText value="#{record.rptname}"/>
+                                    <h:outputText value="#{record.actiname}"/>
                                 </p:column>
                                 <p:column style="text-align:center">
                                     <f:facet name="header">
@@ -60,12 +62,12 @@
                                     <f:facet name="header">
                                         报表说明
                                     </f:facet>
-                                    <h:outputText value="#{record.rptdesc}"/>
+                                    <h:outputText value="#{record.actidesc}"/>
                                 </p:column>
                                 <p:column headerText="操作" style="text-align:center">
-                                    <p:commandLink value="数据展示" immediate="true" ajax="false" action="#{userDefRptMngAction.startShowRpt}"
+                                    <p:commandLink value="短信处理" immediate="true" ajax="false" action="#{mAPortalAction.startSms}"
                                                    style="color: blue">
-                                        <f:param name="rptno" value="#{record.rptno}"/>
+                                        <f:param name="actiNo" value="#{record.actino}"/>
                                     </p:commandLink>
                                 </p:column>
                             </p:dataTable>

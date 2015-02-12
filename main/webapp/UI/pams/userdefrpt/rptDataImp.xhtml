@@ -56,7 +56,11 @@
                             <h:outputText  id="cellcount" value="#{dataImportAction.cellcount}"  />
                             <h:outputLabel value="数据导入笔数:"/>
                             <h:outputText  id="impcount" value="#{dataImportAction.impcount}" style="color: red" />
-                            <p:poll interval="3" update="rowcount,cellcount,impcount"/>
+                            <p:poll stop="#{dataImportAction.pollStop}"
+                                    interval="3"
+                                    widgetVar="poll"
+                                    autoStart="true"
+                                    update="rowcount,cellcount,impcount"/>
                         </h:panelGrid>
                     </p:panel>
                 </h:form>
@@ -68,10 +72,15 @@
                                           mode="simple"
                                           allowTypes="/(\.|\/)(xlsx)$/"/>
                         </h:panelGrid>
-                        <h:panelGrid  cellpadding="0" cellspacing="5" columns="2">
+                        <h:panelGrid  cellpadding="0" cellspacing="5" columns="3">
                             <p:commandButton value="数据导入" ajax="false"
                                              style="width: 120px;"
                                              action="#{dataImportAction.onUpload}"
+                                             update="msgs"/>
+                            <p:commandButton value="客户信息导入" ajax="false"
+                                             style="width: 120px;"
+                                             action="#{dataImportAction.onUploadCustInfo}"
+                                             rendered="#{dataImportAction.mayImpCustInfo == true}"
                                              update="msgs"/>
                             <p:commandButton id="back" ajax="false" value="返  回"
                                              style="width: 120px;"

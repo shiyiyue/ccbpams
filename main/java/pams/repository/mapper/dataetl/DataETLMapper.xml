@@ -69,6 +69,58 @@
     </update>
 
 
+    <!--导入自定义报表的客户信息 -->
+    <update id="mergeCustBaseRecordsForUserDefRpt"  parameterType="java.lang.String">
+        merge into sv_cms_custbase a
+        using (select t.BRANCHID as branch_id,
+                      max(t.FLD02) as cust_name,
+                      t.FLD01 as cust_no,
+                      max(t.FLD03) as contact_info1,
+                      max(t.FLD04) as contact_info2,
+                      max(t.rpt_date) as rpt_date,
+                      'UD_' || #{rptNo} as rpt_type
+                 from (select t2.startdate as rpt_date, t1.*
+                         from CLS_UD_RPTDATA t1, CLS_UD_TBLINFO t2
+                        where t1.rptno = t2.rptno
+                          and t1.rptno = #{rptNo}
+                          and t2.startdate = #{rptDate}) t
+                group by t.BRANCHID, t.FLD01) b
+        on (a.cust_no = b.cust_no)
+        when not matched then
+          insert
+            (guid,
+             branch_id,
+             cust_name,
+             cust_no,
+             contact_info1,
+             contact_info2,
+             rpt_date,
+             rpt_type,
+             imp_date)
+          values
+            (sys_guid(),
+             b.branch_id,
+             b.cust_name,
+             b.cust_no,
+             b.contact_info1,
+             b.contact_info2,
+             b.rpt_date,
+             b.rpt_type,
+             sysdate) where b.rpt_date = #{rptDate}
+        when matched then
+          update
+             set a.contact_info1 = b.contact_info1,
+                 a.contact_info2 = b.contact_info2,
+                 a.rpt_date      = b.rpt_date,
+                 a.rpt_type      = b.rpt_type,
+                 a.cust_name     = b.cust_name,
+                 a.branch_id     = b.branch_id,
+                 a.imp_date      = sysdate
+           where b.rpt_date = #{rptDate}
+             and a.rpt_type = b.rpt_type
+    </update>
+
+
     <!--大额资金流向 -->
     <delete id="deleteLargeFlowData" parameterType="java.lang.String">
         <![CDATA[

@@ -6,12 +6,14 @@ import org.springframework.stereotype.Service;
 import pams.repository.dao.ClsUdFldinfoMapper;
 import pams.repository.dao.ClsUdRptdataMapper;
 import pams.repository.dao.ClsUdTblinfoMapper;
+import pams.repository.dao.dataetl.DataETLMapper;
 import pams.repository.dao.userdefrpt.UserDefRptMapper;
 import pams.repository.model.*;
 import pams.repository.model.userdefrpt.UserDefRptVO;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -33,6 +35,8 @@ public class UserDefRptService {
     private ClsUdFldinfoMapper fldinfoMapper;
     @Autowired
     private ClsUdTblinfoMapper tblinfoMapper;
+    @Autowired
+    private DataETLMapper dataETLMapper;
 
     public List<ClsUdRptdata> selectPagedLargeDepFlowRecords(UserDefRptVO paramBean) {
         return userDefRptMapper.selectPagedRecords(paramBean);
@@ -164,7 +168,7 @@ public class UserDefRptService {
     //更新数据导入时间
     public void updateImportDataDate(String rptno) {
         ClsUdTblinfo record =  tblinfoMapper.selectByPrimaryKey(rptno);
-        record.setImpdate(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+        record.setImpdate(new SimpleDateFormat("yyyyMMdd").format(new Date()));
         tblinfoMapper.updateByPrimaryKey(record);
     }
 
@@ -174,4 +178,17 @@ public class UserDefRptService {
         clearRptData(rptno);
         clearColumnNames(rptno);
     }
+
+    //导入自定义报表的客户信息
+    public int mergeCustBaseRecordsForUserDefRpt(String rptNo, String rptDate) {
+        //检查参数
+        try {
+            new SimpleDateFormat("yyyyMMdd").parse(rptDate);
+        } catch (ParseException e) {
+            throw new RuntimeException("日期格式错误!", e);
+        }
+
+        return dataETLMapper.mergeCustBaseRecordsForUserDefRpt(rptNo, rptDate);
+    }
+
 }

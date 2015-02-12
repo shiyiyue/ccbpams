@@ -15,6 +15,8 @@ public interface DataETLMapper {
     int mergeCustBaseRecords(@Param("rptDate") String rptDate);
     int updateCustBaseRecords4CertInfo();
     int updateNullCertTypeRecords(@Param("rptDate") String rptDate, @Param("certType") String certType);
+    //导入自定义报表的客户信息
+    int mergeCustBaseRecordsForUserDefRpt(@Param("rptNo") String rptNo, @Param("rptDate") String rptDate);
 
 
     //大额资金流向

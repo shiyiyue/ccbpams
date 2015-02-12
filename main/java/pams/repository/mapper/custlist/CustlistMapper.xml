@@ -121,7 +121,7 @@
         order by a.base_branch_id
     </select>
 
-    <select id="selectCustlistRecordsByCertInfo" parameterType="java.lang.String"  resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
+    <select id="selectCustlistRecordsByCertInfo" parameterType="String"  resultMap="pams.repository.dao.ClsRptdataMapper.BaseResultMap">
         select  *
             from cls_rptdata a
           where 1=1

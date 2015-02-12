@@ -40,9 +40,14 @@ public class DataImportAction implements Serializable {
 
     private String rptno;
     private String rptname;
+    private String rptdate;
     private int impcount;
     private int rowcount;
     private int cellcount;
+    private boolean isMayImpCustInfo;
+    private boolean isUploadSuccess;
+    private boolean pollStop = false;
+
 
     private UploadedFile file;
 
@@ -59,12 +64,15 @@ public class DataImportAction implements Serializable {
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rptno = StringUtils.isEmpty(paramsMap.get("rptno")) ? "" : paramsMap.get("rptno");
         rptname = StringUtils.isEmpty(paramsMap.get("rptname")) ? "" : paramsMap.get("rptname");
+        rptdate = StringUtils.isEmpty(paramsMap.get("rptdate")) ? "" : paramsMap.get("rptdate");
         if (StringUtils.isEmpty(rptno)) {
             throw new RuntimeException("请指定报表编号.");
         }
     }
 
     public void onUpload() {
+        isUploadSuccess = false;
+        pollStop = false;
         long start = System.currentTimeMillis();
         impcount = 0;
         rowcount = 0;
@@ -93,6 +101,9 @@ public class DataImportAction implements Serializable {
             userDefRptService.insertColumnDefInfo(rptno, fields);
             rowcount--;
 
+            //判断是否包含客户信息
+            isMayImpCustInfo = isIncludeCustInfo(fields);
+
             //数据导入
             for (int i = 1; i <= rowcount; i++) {
                 getOneRow(sheet, i, cellcount, fields);
@@ -107,6 +118,7 @@ public class DataImportAction implements Serializable {
             //更新导入时间
             userDefRptService.updateImportDataDate(rptno);
 
+            isUploadSuccess = true;
             MessageUtil.addInfo(" 已成功导入。");
 
             Ptoplog oplog = new Ptoplog();
@@ -114,6 +126,7 @@ public class DataImportAction implements Serializable {
             oplog.setActionName("阶段性攻坚报表:报表数据导入 " + rptno);
             platformService.insertNewOperationLog(oplog);
         } catch (Exception ex) {
+            isMayImpCustInfo = false;
             logger.error(" 导入失败。", ex);
             MessageUtil.addError("导入失败." + ex.getMessage());
         } finally {
@@ -127,6 +140,17 @@ public class DataImportAction implements Serializable {
             long end = System.currentTimeMillis();
             MessageUtil.addInfo("共耗时:" + (end - start) / 1000 + "秒...");
             logger.info("导入记录数:" + impcount);
+            pollStop = true;
+        }
+    }
+
+    public void onUploadCustInfo() {
+        try {
+            userDefRptService.mergeCustBaseRecordsForUserDefRpt(rptno, rptdate);
+            MessageUtil.addInfo("客户基本信息处理完成...");
+        } catch (Exception ex) {
+            logger.error("数据处理错误。", ex);
+            MessageUtil.addError("数据处理错误。" + ex.getMessage());
         }
     }
 
@@ -155,7 +179,24 @@ public class DataImportAction implements Serializable {
         }
     }
 
+    private boolean isIncludeCustInfo(String[] fields) {
+        if (!"客户号".equals(fields[1].trim())) {
+            return false;
+        }
+        if (!"客户名称".equals(fields[2].trim())) {
+            return false;
+        }
+        if (!"移动电话".equals(fields[3].trim())) {
+            return false;
+        }
+        if (!"联系电话".equals(fields[4].trim())) {
+            return false;
+        }
+        return true;
+    }
+
     public String onBack() {
+        pollStop = true;
         return "userDefRptMng";
 //        return "userDefRptMng" + "?faces-redirect=true";
     }
@@ -232,5 +273,37 @@ public class DataImportAction implements Serializable {
 
     public void setCellcount(int cellcount) {
         this.cellcount = cellcount;
+    }
+
+    public boolean isMayImpCustInfo() {
+        return isMayImpCustInfo;
+    }
+
+    public void setMayImpCustInfo(boolean isMayImpCustInfo) {
+        this.isMayImpCustInfo = isMayImpCustInfo;
+    }
+
+    public boolean isUploadSuccess() {
+        return isUploadSuccess;
+    }
+
+    public void setUploadSuccess(boolean isUploadSuccess) {
+        this.isUploadSuccess = isUploadSuccess;
+    }
+
+    public String getRptdate() {
+        return rptdate;
+    }
+
+    public void setRptdate(String rptdate) {
+        this.rptdate = rptdate;
+    }
+
+    public boolean isPollStop() {
+        return pollStop;
+    }
+
+    public void setPollStop(boolean pollStop) {
+        this.pollStop = pollStop;
     }
 }

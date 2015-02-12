@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="pams.repository.dao.sms.SmsMaMapper">
+
+    <!--按给定的营销活动号查找该活动下所有报表中的客户记录 -->
+    <sql id="QueryCustinfo_Select">
+        select rownum as sn,b.*,
+               a.guid custGuid,
+               a.cust_name custName,
+               a.contact_info1  contactInfo1,
+               a.contact_info2 contactInfo2,
+               a.contact_info_ext contactInfoExt,
+               a.custmgr_id custmgrId,
+               (select opername from ptoper where operid=a.custmgr_id) as custmgrName,
+               case b.rpttype
+                 when 'UD' then
+                  (select rptname from cls_ud_tblinfo where rptno = b.rptno)
+                 when 'CLS' then
+                  (select enuitemexpand
+                     from ptenudetail
+                    where enutype = 'CUST_LIST_RPT_TYPE'
+                      and enuitemvalue = b.rptno)
+               end rptnoName,
+               case b.rpttype
+                 when 'UD' then '攻坚'
+                 when 'CLS' then '名单制'
+               end rpttypeName
+        from SV_CMS_CUSTBASE a,
+               (select max(t2.rpttype) rpttype,
+                       t1.rpt_type as rptno,
+                       t1.rpt_date as rptdate,
+                       t1.base_branch_id as branchid,
+                       t1.base_custno_ecif as custNo
+                  from cls_rptdata t1, MA_ACTI_DETL t2
+                 where t1.rpt_type = t2.rptno
+                   and t1.rpt_date = t2.rptdate
+                   and t2.actino = #{actiNo}
+                   and t2.rpttype = 'CLS'
+                 group by t1.rpt_type,
+                          t1.rpt_date,
+                          t1.base_branch_id,
+                          t1.base_custno_ecif
+                union all
+                select max(t3.rpttype) as rpype,
+                       max(t3.rptno) as rptno,
+                       max(t3.rptdate) as rptdate,
+                       t1.branchid,
+                       t1.fld01 as custNo
+                  from CLS_UD_RPTDATA t1, CLS_UD_TBLINFO t2, MA_ACTI_DETL t3
+                 where t1.rptno = t2.rptno
+                   and t1.rptno = t3.rptno
+                   and t2.startdate = t3.rptdate
+                   and t3.actino = #{actiNo}
+                   and t3.rpttype = 'UD'
+                 group by t1.branchid, t1.fld01
+                 order by rpttype, rptno, branchid) b
+         where a.cust_no = b.custNo
+    </sql>
+
+
+    <select id="selectCustInfoForMarketingActivity" parameterType="pams.repository.model.custlist.CustMngParam" resultType="pams.repository.model.sms.SmsCustInfo">
+        select * from
+          (<include refid="QueryCustinfo_Select" />) a
+        where
+            a.branchid in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+            <if test = " hideDispatchedFlag == true">
+                and a.custmgrId is null
+            </if>
+            <if test = " custmgrId != null and custmgrId != '' ">
+                and a.custmgrId = #{custmgrId}
+            </if>
+            <if test = " custName != null and custName != '' ">
+                and a.custName like  '%${custName}%'
+            </if>
+            <if test = " ma_rpttype != null and ma_rpttype != '' ">
+                and a.rpttype = #{ma_rpttype}
+            </if>
+            <if test = " ma_rptno != null and ma_rptno != '' ">
+                and a.rptno = #{ma_rptno}
+            </if>
+    </select>
+
+
+    <!-- 按照客户经理和报表编号查询待发短信记录 -->
+    <select id="selectCustInfoForSendSms" parameterType="pams.repository.model.custlist.CustMngParam" resultType="pams.repository.model.sms.SmsCustInfo">
+        select * from
+          (<include refid="QueryCustinfo_Select" />) a
+        where
+            a.branchid in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
+                and not exists (select 1
+                    from MA_SMS_JRNL b
+                    where a.custmgrId = b.send_oper_id
+                    and a.rpttype = b.rpttype
+                    and a.rptno = b.rptno
+                    and a.custNo = b.cust_no
+                    and b.status = 'S')
+            <if test = " custmgrId != null and custmgrId != '' ">
+                and a.custmgrId = #{custmgrId}
+            </if>
+            <if test = " custName != null and custName != '' ">
+                and a.custName like  '%${custName}%'
+            </if>
+            <if test = " ma_rpttype != null and ma_rpttype != '' ">
+                and a.rpttype = #{ma_rpttype}
+            </if>
+            <if test = " ma_rptno != null and ma_rptno != '' ">
+                and a.rptno = #{ma_rptno}
+            </if>
+    </select>
+</mapper>

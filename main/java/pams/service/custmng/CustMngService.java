@@ -42,6 +42,18 @@ public class CustMngService {
         cust.setCustmgrId(custmgrId);
         cmsCustbaseMapper.updateByPrimaryKey(cust);
     }
+    public void dispatchCustMgrByCustno(String custno, String custmgrId) {
+        SvCmsCustbaseExample example = new SvCmsCustbaseExample();
+        example.createCriteria().andCustNoEqualTo(custno);
+        List<SvCmsCustbase> custs = cmsCustbaseMapper.selectByExample(example);
+        if (custs.size() >= 1) {
+            SvCmsCustbase cust = custs.get(0);
+            cust.setCustmgrId(custmgrId);
+            cmsCustbaseMapper.updateByPrimaryKey(cust);
+        } else {
+            throw new RuntimeException("客户基本表中未找到对应的客户信息数据， custno=" + custno);
+        }
+    }
 
     public List<Ptoper> selectCustMgr(String branchId) {
         //return custlistMapper.selectPtopersForRole_CustMgr(branchId);
