@@ -22,6 +22,8 @@ public interface SmsMaMapper {
 
     //按照客户经理和报表编号查询待发短信记录
     List<SmsCustInfo> selectCustInfoForSendSms(CustMngParam bean);
+    //按照客户经理和报表编号查询当日短信发送记录
+    List<SmsCustInfo> selectCustInfoForSendSmsTodayHistory(CustMngParam bean);
 
     @Select("select rptname from  CLS_UD_TBLINFO t where t.rptno = #{rptno}")
     String selectUserdefRptName(String rptno);

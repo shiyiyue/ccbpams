@@ -51,9 +51,19 @@ public class SmsMaService {
         return smsMaMapper.selectCustInfoForSendSms(param);
     }
 
+    public  List<SmsCustInfo> selectCustInfoForSendSmsTodayHistory(CustMngParam param) {
+        if (StringUtils.isNotEmpty(param.getRptType())) {
+            String[] list = param.getRptType().split("\\|");
+            param.setMa_rpttype(list[0]);
+            param.setMa_rptno(list[1]);
+        }
+        return smsMaMapper.selectCustInfoForSendSmsTodayHistory(param);
+    }
+
     public List<MaSmsTpl> selectSmsTplList(){
         MaSmsTplExample example = new MaSmsTplExample();
         example.createCriteria().andInvalidflagEqualTo("0");
+        example.setOrderByClause(" tpl_id ");
         return smsTplMapper.selectByExample(example);
     }
 

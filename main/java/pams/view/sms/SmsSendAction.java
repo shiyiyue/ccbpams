@@ -43,6 +43,7 @@ public class SmsSendAction implements Serializable {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private List<SmsCustInfo> custInfos;
+    private List<SmsCustInfo> hisCustInfos;
     private SmsCustInfo selectedCustInfo;
     private SmsCustInfo[] selectedCustInfos;
 
@@ -55,8 +56,6 @@ public class SmsSendAction implements Serializable {
     private List<SelectItem> branchList;
     private List<SelectItem> rptTypeList;
     private List<MaSmsTpl> smsTplList;
-//    private String smsTplId;
-//    private String smsTplText;
     private MaSmsTpl selectedSmsTpl = new MaSmsTpl();
 
 
@@ -86,20 +85,16 @@ public class SmsSendAction implements Serializable {
         initRptSelectItems();
 
         this.smsTplList = smsMaService.selectSmsTplList();
-
-//        this.smsTplList = selectSmsTplList();
-
-/*        this.custmgrList = selectSmsTplList(branchid);
-        this.custmgrs = new String[custmgrList.size()];
-        int i = 0;
-        for (SelectItem selectItem : this.custmgrList) {
-            this.custmgrs[i] = selectItem.getLabel();
-            i++;
-        }*/
+        selectedSmsTpl = smsTplList.get(0);
 
         this.paramBean = new CustMngParam();
         paramBean.setActiNo(actiNo);
         paramBean.setCustmgrId(operid);
+    }
+
+    public void initData(){
+        this.custInfos = smsMaService.selectCustInfoForSendSms(paramBean);
+        this.hisCustInfos = smsMaService.selectCustInfoForSendSmsTodayHistory(paramBean);
     }
 
     public void onQueryCustInfos() {
@@ -107,7 +102,7 @@ public class SmsSendAction implements Serializable {
             paramBean.setMa_rptno("");
             paramBean.setMa_rpttype("");
         }
-        this.custInfos = smsMaService.selectCustInfoForSendSms(paramBean);
+        initData();
     }
 
     public  void onChangeSmsTpl(ValueChangeEvent e) {
@@ -141,11 +136,11 @@ public class SmsSendAction implements Serializable {
                 record.setSmsTplName(this.selectedSmsTpl.getTplName());
                 smsMaService.sendSms(record);
             }
-            //this.lazyDataModel = new CustMngDataModel(custMngService.getCustlistMapper(), this.paramBean);
-            this.custInfos = smsMaService.selectCustInfoForSendSms(paramBean);
+
+            initData();
 
             Ptoplog oplog = new Ptoplog();
-            oplog.setActionId("CustMng_onDispatch");
+            oplog.setActionId("SmsSend_onSend");
             oplog.setActionName("SMS客户营销管理:短信发送");
             oplog.setOpDataBranchid(this.paramBean.getBranchId());
             platformService.insertNewOperationLog(oplog);
@@ -337,5 +332,13 @@ public class SmsSendAction implements Serializable {
 
     public void setSelectedSmsTpl(MaSmsTpl selectedSmsTpl) {
         this.selectedSmsTpl = selectedSmsTpl;
+    }
+
+    public List<SmsCustInfo> getHisCustInfos() {
+        return hisCustInfos;
+    }
+
+    public void setHisCustInfos(List<SmsCustInfo> hisCustInfos) {
+        this.hisCustInfos = hisCustInfos;
     }
 }

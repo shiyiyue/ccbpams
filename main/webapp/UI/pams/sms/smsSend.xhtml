@@ -22,162 +22,237 @@
 
     <ui:define name="content">
         <div style="margin:5px;">
-            <h:form id="form">
-                <p:growl id="msgs" showDetail="false" life="5000"/>
+            <p:tabView id="tabview" dynamic="true" cache="false" style="font-weight:normal;font-style:normal">
+                <p:tab title="短信发送处理">
+                    <h:form id="form">
+                        <p:growl id="msgs" showDetail="false" life="5000"/>
 
-                <div id="header">
-                    <p:panel header="短信发送处理">
-                        <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
-                            <h:panelGrid columns="2" cellspacing="1">
-                                <h:outputLabel value="分支机构:"/>
-                                <p:selectOneMenu id="branchname"
-                                                 value="#{smsSendAction.paramBean.branchId}">
-                                    <f:selectItems value="#{smsSendAction.branchList}"/>
-                                </p:selectOneMenu>
-                                <h:outputLabel value="客户姓名:"/>
-                                <p:inputText value="#{smsSendAction.paramBean.custName}"
-                                             title="提示：多个客户姓名可使用“|”分割，如：张三|李四"/>
-                                <h:outputLabel value="报表类别:"/>
-                                <p:selectOneMenu value="#{smsSendAction.paramBean.rptType}">
-                                    <f:selectItems value="#{smsSendAction.rptTypeList}"/>
-                                </p:selectOneMenu>
+                        <div id="header">
+                            <p:panel>
+                                <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
+                                    <h:panelGrid columns="2" cellspacing="1">
+                                        <h:outputLabel value="分支机构:"/>
+                                        <p:selectOneMenu id="branchname"
+                                                         value="#{smsSendAction.paramBean.branchId}">
+                                            <f:selectItems value="#{smsSendAction.branchList}"/>
+                                        </p:selectOneMenu>
+                                        <h:outputLabel value="客户姓名:"/>
+                                        <p:inputText value="#{smsSendAction.paramBean.custName}"
+                                                     title="提示：多个客户姓名可使用“|”分割，如：张三|李四"/>
+                                        <h:outputLabel value="报表类别:"/>
+                                        <p:selectOneMenu value="#{smsSendAction.paramBean.rptType}">
+                                            <f:selectItems value="#{smsSendAction.rptTypeList}"/>
+                                        </p:selectOneMenu>
+                                    </h:panelGrid>
+                                    <h:panelGrid>
+                                        <p:commandButton id="qrybtn" style="width:90px;" value="查询"
+                                                         action="#{smsSendAction.onQueryCustInfos}"
+                                                         update=":tabview:form:pdt :tabview:form:msgs :form2:hispdt">
+                                        </p:commandButton>
+
+                                        <p:commandButton ajax="false" id="btnExport" value="导出CSV"
+                                                         style="width:90px;">
+                                            <p:dataExporter type="csv" target="pdt"
+                                                            fileName="rpt#{smsSendAction.paramBean.branchId}"
+                                                            encoding="GBK"
+                                                            pageOnly="false"/>
+                                        </p:commandButton>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </p:panel>
+                        </div>
+
+                        <p:ajaxStatus style="height:20px;text-align:center">
+                            <f:facet name="start">
+                                <h:graphicImage value="/images/ajaxloadingbar.gif"/>
+                            </f:facet>
+                            <f:facet name="complete">
+                                <h:outputText value=""/>
+                            </f:facet>
+                        </p:ajaxStatus>
+
+                        <p:dataTable id="pdt" style="width:100%;"
+                                     lazy="true" widgetVar="pdt"
+                                     editable="true" editMode="cell"
+                                     value="#{smsSendAction.custInfos}" var="record"
+                                     rowKey="#{record.sn}"
+                                     selection="#{smsSendAction.selectedCustInfos}"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
+                                     currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
+                                     paginator="true" rows="15"
+                                     paginatorPosition="bottom"
+                                     rowsPerPageTemplate="500,100,50,30,15"
+                                     emptyMessage="数据记录为空...">
+                            <p:column selectionMode="multiple" style="width:18px"/>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    报表类别
+                                </f:facet>
+                                <h:outputText value="[#{record.rpttypeName}]:#{record.rptnoName}" style="float:left"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    客户名称
+                                </f:facet>
+                                <h:outputText value="#{record.custName}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    客户编号
+                                </f:facet>
+                                <h:outputText value="#{record.custNo}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    联系方式
+                                </f:facet>
+                                <h:outputText value="#{record.contactInfo1}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    短信模板
+                                </f:facet>
+                                <h:outputText value="#{record.smsTplName}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    发送日期
+                                </f:facet>
+                                <h:outputText value="#{record.sendDate} #{record.sendTime}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    发送状态
+                                </f:facet>
+                                <h:outputText value="#{record.status}"/>
+                            </p:column>
+                        </p:dataTable>
+
+                        <p:panel id="smspanel" style="margin-top: 5px;">
+                            <h:panelGrid columns="3">
+                                <p:outputLabel>
+                                    选择短信模板：
+                                </p:outputLabel>
+                                <h:selectOneMenu value="#{smsSendAction.selectedSmsTpl.tplId}" style="width: 200px"
+                                                 valueChangeListener="#{smsSendAction.onChangeSmsTpl}">
+                                    <f:selectItem itemLabel="" itemValue=""/>
+                                    <f:selectItems value="#{smsSendAction.smsTplList}"
+                                                   var="smstpl" itemLabel="#{smstpl.tplName}"
+                                                   itemValue="#{smstpl.tplId}"/>
+                                    <p:ajax process="@this" update=":tabview:form:pdt2 :tabview:form:smspanel"
+                                            event="change"/>
+                                </h:selectOneMenu>
+                                <p:commandButton value="发送短信"
+                                                 title="数据行快捷多选方法：直接点击客户所在的行进行单选、按住Shift+点击进行连续多选、按住Ctrl+点击进行挑选"
+                                                 icon="ui-icon-search"
+                                                 update=":tabview:form:msgs, :tabview:form:pdt, :form2:hispdt"
+                                                 action="#{smsSendAction.onSend}"/>
                             </h:panelGrid>
-                            <h:panelGrid>
-                                <p:commandButton id="qrybtn" style="width:90px;" value="查询"
-                                                 action="#{smsSendAction.onQueryCustInfos}"
-                                                 update="pdt,msgs">
-                                </p:commandButton>
-
-                                <p:commandButton ajax="false" id="btnExport" value="导出CSV"
-                                                 style="width:90px;">
-                                    <p:dataExporter type="csv" target="pdt"
-                                                    fileName="rpt#{smsSendAction.paramBean.branchId}" encoding="GBK"
-                                                    pageOnly="false"/>
-                                </p:commandButton>
+                            <h:panelGrid columns="3">
+                                <h:outputText value="短信内容：[#{smsSendAction.selectedSmsTpl.tplText}]"/>
                             </h:panelGrid>
-                        </h:panelGrid>
-                    </p:panel>
-                </div>
+                        </p:panel>
 
-                <p:ajaxStatus style="height:20px;text-align:center">
-                    <f:facet name="start">
-                        <h:graphicImage value="/images/ajaxloadingbar.gif"/>
-                    </f:facet>
-                    <f:facet name="complete">
-                        <h:outputText value=""/>
-                    </f:facet>
-                </p:ajaxStatus>
+                        <p:separator style="margin-top: 35px;"/>
+                        <p:dataTable id="pdt2" style="width:80%; "
+                                     value="#{smsSendAction.smsTplList}" var="smsrecord"
+                                     rowKey="#{smsrecord.tplId}"
+                                     selectionMode="single"
+                                     selection="#{smsSendAction.selectedSmsTpl}" emptyMessage="...">
+                            <p:ajax event="rowSelect" listener="#{smsSendAction.onRowSelect}"
+                                    update=":tabview:form:msgs :tabview:form:smspanel"/>
 
-                <p:dataTable id="pdt" style="width:100%;"
-                             lazy="true" widgetVar="pdt"
-                             editable="true" editMode="cell"
-                             value="#{smsSendAction.custInfos}" var="record"
-                             rowKey="#{record.sn}"
-                             selection="#{smsSendAction.selectedCustInfos}"
-                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
-                             currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
-                             paginator="true" rows="15"
-                             paginatorPosition="bottom"
-                             rowsPerPageTemplate="500,100,50,30,15"
-                             emptyMessage="数据记录为空...">
-                    <p:column selectionMode="multiple" style="width:18px"/>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            报表类别
-                        </f:facet>
-                        <h:outputText value="[#{record.rpttypeName}]:#{record.rptnoName}" style="float:left"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            客户名称
-                        </f:facet>
-                        <h:outputText value="#{record.custName}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            客户编号
-                        </f:facet>
-                        <h:outputText value="#{record.custNo}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            联系方式
-                        </f:facet>
-                        <h:outputText value="#{record.contactInfo1}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            短信模板
-                        </f:facet>
-                        <h:outputText value="#{record.smsTplName}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            发送日期
-                        </f:facet>
-                        <h:outputText value="#{record.sendDate} #{record.sendTime}"/>
-                    </p:column>
-                    <p:column style="text-align:center">
-                        <f:facet name="header">
-                            发送状态
-                        </f:facet>
-                        <h:outputText value="#{record.status}"/>
-                    </p:column>
-                </p:dataTable>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    模板编号
+                                </f:facet>
+                                <h:outputText value="#{smsrecord.tplId}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    模板名称
+                                </f:facet>
+                                <h:outputText value="#{smsrecord.tplName}"/>
+                            </p:column>
+                            <p:column style="text-align:center">
+                                <f:facet name="header">
+                                    短信内容
+                                </f:facet>
+                                <h:outputText value="#{smsrecord.tplText}" style="float: left"/>
+                            </p:column>
+                        </p:dataTable>
+                    </h:form>
+                </p:tab>
+            </p:tabView>
 
-                <p:panel id="smspanel" style="margin-top: 5px;">
-                    <h:panelGrid columns="3">
-                        <p:outputLabel>
-                            选择短信模板：
-                        </p:outputLabel>
-                        <h:selectOneMenu value="#{smsSendAction.selectedSmsTpl.tplId}" style="width: 200px"
-                                         valueChangeListener="#{smsSendAction.onChangeSmsTpl}">
-                            <f:selectItem itemLabel="" itemValue=""/>
-                            <f:selectItems value="#{smsSendAction.smsTplList}"
-                                           var="smstpl" itemLabel="#{smstpl.tplName}" itemValue="#{smstpl.tplId}"/>
-                            <p:ajax process="@this" update="smspanel :form:pdt2" event="change"/>
-                        </h:selectOneMenu>
-                        <p:commandButton value="发送短信" title="数据行快捷多选方法：直接点击客户所在的行进行单选、按住Shift+点击进行连续多选、按住Ctrl+点击进行挑选"
-                                         icon="ui-icon-search"
-                                         update=":form:msgs, :form:pdt" action="#{smsSendAction.onSend}"/>
-                    </h:panelGrid>
-                    <h:panelGrid columns="3">
-                        <h:outputText value="短信内容：[#{smsSendAction.selectedSmsTpl.tplText}]"/>
-                    </h:panelGrid>
-                </p:panel>
-
-                <p:separator style="margin-top: 35px;"/>
-                <p:panel style="width:80%; margin-top: 5px;">
-                    <p:dataTable id="pdt2" style="width:100%; "
-                                 value="#{smsSendAction.smsTplList}" var="smsrecord"
-                                 rowKey="#{smsrecord.tplId}"
-                                 selectionMode="single"
-                                 selection="#{smsSendAction.selectedSmsTpl}">
-                        <p:ajax event="rowSelect" listener="#{smsSendAction.onRowSelect}"
-                                update=":form:msgs :form:smspanel"/>
-
+            <p:fieldset legend="当日短信处理历史" style="margin-top:25px;" toggleable="true" toggleSpeed="500">
+                <h:form id="form2">
+                    <p:dataTable id="hispdt" style="width:100%; margin-top: 5px"
+                                 value="#{smsSendAction.hisCustInfos}" var="hisInfo"
+                                 rowKey="#{hisInfo.sn}" emptyMessage="...">
                         <p:column style="text-align:center">
                             <f:facet name="header">
-                                模板编号
+                                报表类别
                             </f:facet>
-                            <h:outputText value="#{smsrecord.tplId}"/>
+                            <h:outputText value="[#{hisInfo.rpttypeName}]:#{hisInfo.rptnoName}" style="float:left"/>
                         </p:column>
                         <p:column style="text-align:center">
                             <f:facet name="header">
-                                模板名称
+                                客户名称
                             </f:facet>
-                            <h:outputText value="#{smsrecord.tplName}"/>
+                            <h:outputText value="#{hisInfo.custName}"/>
                         </p:column>
                         <p:column style="text-align:center">
                             <f:facet name="header">
-                                短信内容
+                                客户编号
                             </f:facet>
-                            <h:outputText value="#{smsrecord.tplText}" style="float: left"/>
+                            <h:outputText value="#{hisInfo.custNo}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                联系方式
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.contactInfo1}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                短信模板
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.smsTplName}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                发送日期
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.sendDate} #{hisInfo.sendTime}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                接收电话
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.custPhone}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                发送状态
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.status}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                响应代码
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.smsRespCode}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                响应信息
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.smsRespMsg}"/>
                         </p:column>
                     </p:dataTable>
-                </p:panel>
-
-            </h:form>
+                </h:form>
+            </p:fieldset>
         </div>
     </ui:define>
 </ui:composition>

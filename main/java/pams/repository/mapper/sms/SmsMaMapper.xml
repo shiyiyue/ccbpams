@@ -107,4 +107,31 @@
                 and a.rptno = #{ma_rptno}
             </if>
     </select>
+
+    <!-- 按照客户经理和报表编号查询 当日短信记录 -->
+    <select id="selectCustInfoForSendSmsTodayHistory" parameterType="pams.repository.model.custlist.CustMngParam" resultType="pams.repository.model.sms.SmsCustInfo">
+        select a.*,
+          b.sms_tpl_id smsTplId,
+          (select tpl_name from MA_SMS_TPL where tpl_id = b.sms_tpl_id) smsTplName,
+          b.send_oper_id sendOperId,
+          b.send_branch_id sendBranchId,
+          b.send_date sendDate,
+          b.send_time sendTime,
+          b.cust_phone custPhone,
+          b.cust_phone custPhone,
+          b.status,
+          b.sms_reqsn smsReqsn,
+          b.sms_resp_code smsRespCode,
+          b.sms_resp_msg smsRespMsg,
+          b.remark
+        from
+          (<include refid="QueryCustinfo_Select" />) a, MA_SMS_JRNL b
+        where
+            a.custmgrId = #{custmgrId}
+            and a.custmgrId = b.send_oper_id
+            and b.actino = #{actiNo}
+            and a.rpttype = b.rpttype
+            and a.rptno = b.rptno
+            and a.custNo = b.cust_no
+    </select>
 </mapper>
