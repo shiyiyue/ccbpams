@@ -16,6 +16,55 @@
             .col-5 {
                 width: 5%;
             }
+
+            .fixed-size {
+                table-layout: fixed;
+                word-wrap: break-word;
+            }
+
+            .mystyle.ui-datatable .ui-datatable-header {
+                background: #003946 !important;
+
+            }
+
+            .mystyle.ui-datatable .ui-datatable-even {
+                background: white;
+            }
+
+            .mystyle.ui-datatable .ui-datatable-odd.ui-state-hover {
+                background: #F4E7C1;
+
+            }
+
+            .mystyle.ui-datatable .ui-datatable-even.ui-state-hover {
+                background: #F4E7C1;
+
+            }
+
+            .mystyle.ui-datatable .ui-datatable-even.ui-state-highlight {
+                background: #fff9e5;
+
+            }
+
+            .mystyle.ui-datatable .ui-datatable-odd.ui-state-highlight {
+                background: #fff9e5;
+
+            }
+
+            .mystyle.ui-datatable .ui-datatable-data-empty td {
+                color: red;
+                font-weight: bold;
+            }
+
+            .ui-datatable.mystyle th {
+                background: EAAB00;
+                font-family: verdana;
+                font-size: 1em;
+            }
+
+            .mystyle.ui-datatable .ui-expanded-row-content {
+                background: white;
+            }
         </style>
 
     </ui:define>
@@ -83,6 +132,8 @@
                                      paginatorPosition="bottom"
                                      rowsPerPageTemplate="500,100,50,30,15"
                                      emptyMessage="数据记录为空...">
+                            <p:ajax event="cellEdit" listener="#{smsSendAction.onCellEdit}" update=":tabview:form:pdt :tabview:form:msgs " />
+
                             <p:column selectionMode="multiple" style="width:18px"/>
                             <p:column style="text-align:center">
                                 <f:facet name="header">
@@ -108,53 +159,56 @@
                                 </f:facet>
                                 <h:outputText value="#{record.contactInfo1}"/>
                             </p:column>
-                            <p:column style="text-align:center">
+                            <p:column>
                                 <f:facet name="header">
-                                    短信模板
+                                    补充联系方式
                                 </f:facet>
-                                <h:outputText value="#{record.smsTplName}"/>
-                            </p:column>
-                            <p:column style="text-align:center">
-                                <f:facet name="header">
-                                    发送日期
-                                </f:facet>
-                                <h:outputText value="#{record.sendDate} #{record.sendTime}"/>
-                            </p:column>
-                            <p:column style="text-align:center">
-                                <f:facet name="header">
-                                    发送状态
-                                </f:facet>
-                                <h:outputText value="#{record.status}"/>
+                                <p:cellEditor id="contractExt">
+                                    <f:facet name="output"><h:outputText value="#{record.contactInfoExt}"/></f:facet>
+                                    <f:facet name="input"><p:inputText id="ceInput" value="#{record.contactInfoExt}"
+                                                                       style="width:96%"/></f:facet>
+                                </p:cellEditor>
                             </p:column>
                         </p:dataTable>
 
                         <p:panel id="smspanel" style="margin-top: 5px;">
+                            <h:panelGrid columns="2">
+                                <h:outputLabel value="客户经理:"/>
+                                <p:inputText value="#{smsSendAction.opername}" readonly="true"/>
+                                <h:outputLabel value="客户经理电话:"/>
+                                <p:inputText value="#{smsSendAction.operphone}" valueChangeListener="#{smsSendAction.onChangeCustmgrPhone}">
+                                    <p:ajax process="@this" update=":tabview:form:pdt2 :tabview:form:smspanel" event="change"/>
+                                </p:inputText>
+                                <h:outputLabel value="短信模板:"/>
+                                <p:inputText value="#{smsSendAction.selectedSmsTpl.tplName}" readonly="true"/>
+                            </h:panelGrid>
                             <h:panelGrid columns="3">
-                                <p:outputLabel>
-                                    选择短信模板：
-                                </p:outputLabel>
+                                <h:outputLabel value="短信内容:"/>
+                                <h:outputLabel value="[#{smsSendAction.smsText}]"/>
+                            </h:panelGrid>
+                            <h:panelGrid columns="2">
+<!--
                                 <h:selectOneMenu value="#{smsSendAction.selectedSmsTpl.tplId}" style="width: 200px"
                                                  valueChangeListener="#{smsSendAction.onChangeSmsTpl}">
-                                    <f:selectItem itemLabel="" itemValue=""/>
                                     <f:selectItems value="#{smsSendAction.smsTplList}"
                                                    var="smstpl" itemLabel="#{smstpl.tplName}"
                                                    itemValue="#{smstpl.tplId}"/>
                                     <p:ajax process="@this" update=":tabview:form:pdt2 :tabview:form:smspanel"
                                             event="change"/>
                                 </h:selectOneMenu>
+-->
                                 <p:commandButton value="发送短信"
                                                  title="数据行快捷多选方法：直接点击客户所在的行进行单选、按住Shift+点击进行连续多选、按住Ctrl+点击进行挑选"
                                                  icon="ui-icon-search"
                                                  update=":tabview:form:msgs, :tabview:form:pdt, :form2:hispdt"
                                                  action="#{smsSendAction.onSend}"/>
                             </h:panelGrid>
-                            <h:panelGrid columns="3">
-                                <h:outputText value="短信内容：[#{smsSendAction.selectedSmsTpl.tplText}]"/>
-                            </h:panelGrid>
                         </p:panel>
 
-                        <p:separator style="margin-top: 35px;"/>
-                        <p:dataTable id="pdt2" style="width:80%; "
+                        <p:separator style="margin-top: 30px;"/>
+                        <!--styleClass="mystyle"-->
+                        <p:dataTable id="pdt2"
+                                     style="width: 80%"
                                      value="#{smsSendAction.smsTplList}" var="smsrecord"
                                      rowKey="#{smsrecord.tplId}"
                                      selectionMode="single"
@@ -202,17 +256,25 @@
                             </f:facet>
                             <h:outputText value="#{hisInfo.custName}"/>
                         </p:column>
+<!--
                         <p:column style="text-align:center">
                             <f:facet name="header">
                                 客户编号
                             </f:facet>
                             <h:outputText value="#{hisInfo.custNo}"/>
                         </p:column>
+-->
                         <p:column style="text-align:center">
                             <f:facet name="header">
                                 联系方式
                             </f:facet>
                             <h:outputText value="#{hisInfo.contactInfo1}"/>
+                        </p:column>
+                        <p:column style="text-align:center">
+                            <f:facet name="header">
+                                补充联系方式
+                            </f:facet>
+                            <h:outputText value="#{hisInfo.contactInfoExt}"/>
                         </p:column>
                         <p:column style="text-align:center">
                             <f:facet name="header">

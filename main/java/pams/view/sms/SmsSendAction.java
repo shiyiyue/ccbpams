@@ -8,6 +8,7 @@ import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import pams.common.SystemService;
 import pams.common.utils.MessageUtil;
 import pams.repository.model.*;
@@ -17,6 +18,7 @@ import pams.service.custmng.CustMngService;
 import pams.service.marketingactivity.MaBaseInfoService;
 import pams.service.sms.SmsMaService;
 import pub.platform.security.OperatorManager;
+import pub.platform.system.manage.dao.PtOperBean;
 import skyline.service.PlatformService;
 import skyline.service.ToolsService;
 
@@ -51,12 +53,15 @@ public class SmsSendAction implements Serializable {
     private String actiNo;
 
     private String operid;
+    private String opername;
+    private String operphone;
     private String branchid;
     private CustMngParam paramBean;
     private List<SelectItem> branchList;
     private List<SelectItem> rptTypeList;
     private List<MaSmsTpl> smsTplList;
-    private MaSmsTpl selectedSmsTpl = new MaSmsTpl();
+    private MaSmsTpl selectedSmsTpl;
+    private String smsText = "";
 
 
     @ManagedProperty(value = "#{toolsService}")
@@ -76,6 +81,8 @@ public class SmsSendAction implements Serializable {
         OperatorManager om = SystemService.getOperatorManager();
         operid = om.getOperatorId();
         branchid = om.getOperator().getDeptid();
+        opername = om.getOperator().getOpername();
+        operphone = om.getOperator().getMobilephone();
 
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         actiNo = StringUtils.isEmpty(paramsMap.get("actiNo")) ? "" : paramsMap.get("actiNo");
@@ -92,7 +99,7 @@ public class SmsSendAction implements Serializable {
         paramBean.setCustmgrId(operid);
     }
 
-    public void initData(){
+    public void initData() {
         this.custInfos = smsMaService.selectCustInfoForSendSms(paramBean);
         this.hisCustInfos = smsMaService.selectCustInfoForSendSmsTodayHistory(paramBean);
     }
@@ -105,12 +112,23 @@ public class SmsSendAction implements Serializable {
         initData();
     }
 
-    public  void onChangeSmsTpl(ValueChangeEvent e) {
+/*    public void onChangeSmsTpl(ValueChangeEvent e) {
         String newValue = (String) e.getNewValue();
         if (StringUtils.isEmpty(newValue)) {
             this.selectedSmsTpl = null;
-        }else{
+        } else {
             this.selectedSmsTpl = smsMaService.selectSmsTpl(newValue);
+        }
+    }*/
+
+    public void onChangeCustmgrPhone(ValueChangeEvent e) {
+        String newValue = (String) e.getNewValue();
+        this.operphone = newValue;
+
+        try {
+            processSmsTpl();
+        } catch (Exception ex) {
+            MessageUtil.addError(ex.getMessage());
         }
     }
 
@@ -123,8 +141,23 @@ public class SmsSendAction implements Serializable {
             MessageUtil.addError("请选择短信模板");
             return null;
         }
+        if (StringUtils.isEmpty(operphone)) {
+            MessageUtil.addError("客户经理电话不能为空.");
+            return null;
+        }
+        if (StringUtils.isEmpty(smsText)) {
+            MessageUtil.addError("短信内容不能为空.");
+            return null;
+        }
 
         try {
+            PtOperBean operator = SystemService.getOperatorManager().getOperator();
+            if (!operphone.equals(operator.getMobilephone().trim())) {
+                smsMaService.updateOperMobilePhone(operid, operphone);
+                operator.setMobilephone(operphone);
+            }
+
+            int succCnt = 0;
             for (SmsCustInfo record : selectedCustInfos) {
                 record.setActino(actiNo);
                 record.setSendOperId(operid);
@@ -134,7 +167,9 @@ public class SmsSendAction implements Serializable {
                 record.setSendTime(dt.toString("HH:mm:ss"));
                 record.setSmsTplId(this.selectedSmsTpl.getTplId());
                 record.setSmsTplName(this.selectedSmsTpl.getTplName());
-                smsMaService.sendSms(record);
+                if (smsMaService.sendSms(record, this.smsText)) {
+                    succCnt++;
+                }
             }
 
             initData();
@@ -145,15 +180,49 @@ public class SmsSendAction implements Serializable {
             oplog.setOpDataBranchid(this.paramBean.getBranchId());
             platformService.insertNewOperationLog(oplog);
 
-            MessageUtil.addInfo("短信发送操作完成...");
+            MessageUtil.addInfo("处理结果:发送[" + succCnt + "]条短信.");
         } catch (Exception e) {
             logger.error("短信发送时出现错误...", e);
             MessageUtil.addWarn("短信发送时出现错误。" + e.getMessage());
         }
         return null;
     }
+
     public void onRowSelect(SelectEvent event) {
-        this.selectedSmsTpl = (MaSmsTpl) event.getObject();
+        try {
+            this.selectedSmsTpl = (MaSmsTpl) event.getObject();
+            processSmsTpl();
+        } catch (Exception e) {
+            MessageUtil.addWarn(e.getMessage());
+        }
+    }
+    public void onCellEdit(CellEditEvent event) {
+        Object oldValue = event.getOldValue();
+        Object newValue = event.getNewValue();
+
+        org.primefaces.component.api.UIColumn uic = event.getColumn();
+        if (newValue != null && !newValue.equals(oldValue)) {
+            Object source = event.getSource();
+            DataTable dt = (DataTable) source;
+            String sn = (String) dt.getRowKey();
+
+            String id = uic.getCellEditor().getId();
+            if ("contractExt".equals(id)) {
+                for (SmsCustInfo custInfo : this.custInfos) {
+                    if (custInfo.getSn().equals(sn)) {
+                        custMngService.updateCustBaseContractExtInfo(custInfo.getCustGuid(), (String) newValue);
+                        break;
+                    }
+                }
+            }
+
+            Ptoplog oplog = new Ptoplog();
+            oplog.setActionId("SmsSendAction_onCellEdit");
+            oplog.setActionName("SMS客户营销信息管理:修改客户联系方式");
+            oplog.setOpDataBranchid(this.paramBean.getBranchId());
+            platformService.insertNewOperationLog(oplog);
+
+        }
     }
 
     //=========================
@@ -166,6 +235,19 @@ public class SmsSendAction implements Serializable {
             selectItems.add(item);
         }
         return selectItems;
+    }
+
+    private void processSmsTpl() {
+        this.smsText = selectedSmsTpl.getTplText();
+        if (smsText.contains("#{cmName}")) {
+            smsText = smsText.replace("#{cmName}", opername);
+        }
+        if (smsText.contains("#{cmPhone}")) {
+            if (StringUtils.isEmpty(operphone)) {
+                throw new RuntimeException("客户经理电话号码不能为空.");
+            }
+            smsText = smsText.replace("#{cmPhone}", operphone);
+        }
     }
 
     private void initRptSelectItems() {
@@ -340,5 +422,29 @@ public class SmsSendAction implements Serializable {
 
     public void setHisCustInfos(List<SmsCustInfo> hisCustInfos) {
         this.hisCustInfos = hisCustInfos;
+    }
+
+    public String getOpername() {
+        return opername;
+    }
+
+    public void setOpername(String opername) {
+        this.opername = opername;
+    }
+
+    public String getOperphone() {
+        return operphone;
+    }
+
+    public void setOperphone(String operphone) {
+        this.operphone = operphone;
+    }
+
+    public String getSmsText() {
+        return smsText;
+    }
+
+    public void setSmsText(String smsText) {
+        this.smsText = smsText;
     }
 }
