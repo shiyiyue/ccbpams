@@ -1,0 +1,169 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                template="/templates/ui.xhtml">
+
+    <ui:define name="head">
+        <style type="text/css">
+            .col-95 {
+                width: 95%;
+            }
+
+            .col-5 {
+                width: 5%;
+            }
+        </style>
+
+    </ui:define>
+
+    <ui:define name="content">
+        <div style="margin:5px;">
+            <h:form id="form">
+                <p:growl id="msgs" showDetail="false" life="1500"/>
+
+                <div id="header">
+                    <p:panel header="企业网银批量代发明细查询">
+                        <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
+                            <h:panelGrid columns="2" cellspacing="5">
+                                <h:outputLabel value="分支机构:"/>
+                                <h:selectOneMenu id="branchname" style="width:153px;"
+                                                 value="#{batchPayrollAgencyAction.paramBean.branchId}">
+                                    <f:selectItems value="#{batchPayrollAgencyAction.branchList}"/>
+                                </h:selectOneMenu>
+                                <h:outputLabel value="代发单位账号:"/>
+                                <p:inputText value="#{batchPayrollAgencyAction.paramBean.acctNo}"
+                                             required="true" requiredMessage="账号必须输入" size="30" />
+                                <h:outputLabel value="批次号:"/>
+                                <p:inputText value="#{batchPayrollAgencyAction.paramBean.chanlFlowNo}" />
+
+                                <h:outputLabel value="起始日期:"/>
+                                <p:inputText id="startDate" value="#{batchPayrollAgencyAction.paramBean.startDate}"
+                                             onclick="WdatePicker({dateFmt:'yyyy-MM-dd'})"/>
+                                <h:outputLabel value="截止日期:"/>
+                                <p:inputText id="endDate" value="#{batchPayrollAgencyAction.paramBean.endDate}"
+                                             onclick="WdatePicker({dateFmt:'yyyy-MM-dd'})"/>
+                            </h:panelGrid>
+                            <h:panelGrid>
+                                <p:commandButton id="qrybtn" style="width:90px;" value="查询"
+                                                 action="#{batchPayrollAgencyAction.onQuery}"
+                                                 update="pdt,msgs">
+                                </p:commandButton>
+
+<!--
+                                <p:commandButton ajax="false" id="btnExport" value="导出CSV"
+                                                 style="width:90px;">
+                                    <p:dataExporter type="csv" target="pdt" fileName="rpt#{batchPayrollAgencyAction.paramBean.branchId}" encoding="GBK"
+                                                    pageOnly="false"/>
+                                </p:commandButton>
+                                <p:commandButton ajax="false" id="btnExportXLs" value="导出EXCEL"
+                                                 style="width:90px;">
+                                    <p:dataExporter type="xls" target="pdt" fileName="rpt#{batchPayrollAgencyAction.paramBean.branchId}" encoding="GBK"
+                                                    pageOnly="false"/>
+                                </p:commandButton>
+-->
+                            </h:panelGrid>
+                        </h:panelGrid>
+                    </p:panel>
+                </div>
+
+                <p:ajaxStatus style="height:20px;text-align:center">
+                    <f:facet name="start">
+                        <h:graphicImage value="/images/ajaxloadingbar.gif"/>
+                    </f:facet>
+                    <f:facet name="complete">
+                        <h:outputText value=""/>
+                    </f:facet>
+                </p:ajaxStatus>
+
+                <p:dataTable id="pdt" style="width:100%;"
+                             value="#{batchPayrollAgencyAction.detlRecords}" var="record"
+                             rowKey="#{record.chanlFlowNo}#{record.crTxDt}#{record.acctNo}"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
+                             currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
+                             paginator="true" rows="15"
+                             paginatorPosition="bottom"
+                             rowsPerPageTemplate="100,50,30,15,5"
+                             emptyMessage="数据记录为空...">
+
+                    <p:column style="text-align:center"  sortBy="#{record.tradBran}">
+                        <f:facet name="header">
+                            机构
+                        </f:facet>
+                        <h:outputText value="#{record.tradBran}"/>
+                    </p:column>
+                    <p:column style="text-align:center"  sortBy="#{record.crTxDt}">
+                        <f:facet name="header">
+                            交易日期
+                        </f:facet>
+                        <h:outputText value="#{record.crTxDt}"/>
+                    </p:column>
+
+<!--                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            代发单位账号
+                        </f:facet>
+                        <h:outputText value="#{record.acctNo}"/>
+                    </p:column>-->
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            代发单位名称
+                        </f:facet>
+                        <h:outputText value="#{record.acctName}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            批次号
+                        </f:facet>
+                        <h:outputText value="#{record.chanlFlowNo}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            用途
+                        </f:facet>
+                        <h:outputText value="#{record.purpose}"/>
+                    </p:column>
+                    <p:column style="text-align:right">
+                        <f:facet name="header">
+                            总笔数/金额
+                        </f:facet>
+                        <h:outputText value="#{record.payTotNum}/#{record.usertotamt}"/>
+                    </p:column>
+                    <p:column style="text-align:right">
+                        <f:facet name="header">
+                            成功笔数/金额
+                        </f:facet>
+                        <h:outputText value="#{record.sucNum}/#{record.sucAmt}"/>
+                    </p:column>
+                    <p:column style="text-align:right">
+                        <f:facet name="header">
+                            失败笔数/金额
+                        </f:facet>
+                        <h:outputText value="#{record.xtFailCntN}/#{record.falAmt}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            交易渠道
+                        </f:facet>
+                        <h:outputText value="#{record.chnType}"/>
+                    </p:column>
+                    <p:column headerText="数据操作" style="text-align:center">
+                        <p:commandLink value="明细查询" immediate="true"
+                                       ajax="true"
+                                       action="#{batchPayrollAgencyAction.onQueryDtl}"
+                                       style="color: blue; margin-right:5px">
+                            <f:param name="chanlFlowNo" value="#{record.chanlFlowNo}"/>
+                            <f:param name="acctNo" value="#{record.acctNo}"/>
+                            <f:param name="acctName" value="#{record.acctName}"/>
+                            <f:param name="txnDate" value="#{record.crTxDt}"/>
+                        </p:commandLink>
+                    </p:column>
+
+                </p:dataTable>
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

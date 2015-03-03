@@ -135,7 +135,7 @@ public class SmsMaService {
             BeanUtils.copyProperties(maSmsJrnl, custInfo);
 
             smsJrnlMapper.insert(maSmsJrnl);
-            return true;
+            return isSucc;
         } catch (Exception e) {
             throw new RuntimeException("∂Ã–≈¥¶¿Ì ß∞‹", e);
         }

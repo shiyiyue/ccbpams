@@ -109,6 +109,11 @@ public class SmsCustAssignAction implements Serializable {
             paramBean.setMa_rpttype("");
         }
         this.custInfos = smsMaService.selectCustInfoForMarketingActivity(paramBean);
+        Ptoplog oplog = new Ptoplog();
+        oplog.setActionId("SmsCustAssign_onQueryCustInfos");
+        oplog.setActionName("SMS客户营销管理:客户分配信息查询");
+        oplog.setOpDataBranchid(this.paramBean.getBranchId());
+        platformService.insertNewOperationLog(oplog);
     }
 
     public void onCellEdit(CellEditEvent event) {
@@ -141,7 +146,7 @@ public class SmsCustAssignAction implements Serializable {
             this.custInfos = smsMaService.selectCustInfoForMarketingActivity(paramBean);
 
             Ptoplog oplog = new Ptoplog();
-            oplog.setActionId("CustMng_onDispatch");
+            oplog.setActionId("SmsCustAssign_onDispatch");
             oplog.setActionName("SMS客户营销管理:客户分配");
             oplog.setOpDataBranchid(this.paramBean.getBranchId());
             platformService.insertNewOperationLog(oplog);

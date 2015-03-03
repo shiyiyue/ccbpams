@@ -177,12 +177,8 @@
             <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
         </table>
 -->
-        <table tableName="ma_acti_main" />
-        <table tableName="ma_acti_detl" />
-        <table tableName="ma_sms_tpl" />
-        <table tableName="ma_sms_jrnl">
-            <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
-        </table>
+        <table tableName="odsb_pldf_batch" />
+        <table tableName="odsb_pldf_dtl" />
 
     </context>
 

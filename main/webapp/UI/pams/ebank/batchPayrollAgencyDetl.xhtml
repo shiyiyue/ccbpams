@@ -1,0 +1,118 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                template="/templates/ui.xhtml">
+
+    <ui:define name="head">
+        <style type="text/css">
+            .col-95 {
+                width: 95%;
+            }
+
+            .col-5 {
+                width: 5%;
+            }
+        </style>
+
+    </ui:define>
+
+    <ui:define name="content">
+        <div style="margin:5px;">
+            <h:form id="form">
+                <p:growl id="msgs" showDetail="false" life="1500"/>
+
+                <div id="header">
+                    <p:panel header="企业网银批量代发明细数据">
+                        <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
+                            <h:panelGrid columns="2" cellspacing="5">
+                                <h:outputLabel value="代发单位账号:"/>
+                                <p:inputText value="#{batchPayrollAgencyDetlAction.paramBean.acctNo}"
+                                             readonly="true" size="30" />
+                                <h:outputLabel value="代发单位名称:"/>
+                                <p:inputText value="#{batchPayrollAgencyDetlAction.paramBean.acctName}"
+                                             readonly="true" size="80" />
+                                <h:outputLabel value="批次号:"/>
+                                <p:inputText value="#{batchPayrollAgencyDetlAction.paramBean.chanlFlowNo}"
+                                             readonly="true" size="30"/>
+                            </h:panelGrid>
+                            <h:panelGrid>
+                                <p:commandButton ajax="false" id="btnExportXLs" value="导出EXCEL"
+                                                 style="width:90px;">
+                                    <p:dataExporter type="xls" target="pdt" fileName="rpt#{batchPayrollAgencyDetlAction.paramBean.branchId}" encoding="GBK"
+                                                    pageOnly="false"/>
+                                </p:commandButton>
+                                <p:commandButton ajax="false" id="btnReturn" value="返回"
+                                                 action="#{batchPayrollAgencyDetlAction.onBack}"
+                                                 style="width:90px;">
+                                </p:commandButton>
+                            </h:panelGrid>
+                        </h:panelGrid>
+                    </p:panel>
+                </div>
+
+                <p:ajaxStatus style="height:20px;text-align:center">
+                    <f:facet name="start">
+                        <h:graphicImage value="/images/ajaxloadingbar.gif"/>
+                    </f:facet>
+                    <f:facet name="complete">
+                        <h:outputText value=""/>
+                    </f:facet>
+                </p:ajaxStatus>
+
+                <p:dataTable id="pdt" style="width:100%;"
+                             lazy="true"
+                             value="#{batchPayrollAgencyDetlAction.lazyDataModel}" var="record"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
+                             currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
+                             paginator="true" rows="15"
+                             paginatorPosition="bottom"
+                             rowsPerPageTemplate="100,50,30,15,5"
+                             emptyMessage="数据记录为空...">
+
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            批次号
+                        </f:facet>
+                        <h:outputText value="#{record.chanlFlowNo}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            子流水号
+                        </f:facet>
+                        <h:outputText value="#{record.seriNo}"/>
+                    </p:column>
+
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            个人账号
+                        </f:facet>
+                        <h:outputText value="#{record.acctNo}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            名称
+                        </f:facet>
+                        <h:outputText value="#{record.acctName}"/>
+                    </p:column>
+                    <p:column style="text-align:right">
+                        <f:facet name="header">
+                            金额
+                        </f:facet>
+                        <h:outputText value="#{record.agBscExp}"/>
+                    </p:column>
+                    <p:column style="text-align:center">
+                        <f:facet name="header">
+                            失败原因
+                        </f:facet>
+                        <h:outputText value="#{record.failReason}"/>
+                    </p:column>
+
+                </p:dataTable>
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

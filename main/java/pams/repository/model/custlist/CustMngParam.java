@@ -9,6 +9,8 @@ import pams.repository.model.SvCmsCustbase;
  * Time: 下午1:56
  */
 public class CustMngParam extends SvCmsCustbase {
+    private String startDate;
+    private String endDate;
 
     //是否显示已分派客户经理的记录 false-不显示  true-显示
     private boolean hideDispatchedFlag;
@@ -96,5 +98,21 @@ public class CustMngParam extends SvCmsCustbase {
 
     public void setActiNo(String actiNo) {
         this.actiNo = actiNo;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 }
