@@ -61,7 +61,8 @@ public class BatchPayrollAgencyDetlAction implements Serializable {
         String acctNo = StringUtils.isEmpty(paramsMap.get("acctNo")) ? "" : paramsMap.get("acctNo");
         String acctName = StringUtils.isEmpty(paramsMap.get("acctName")) ? "" : paramsMap.get("acctName");
         if (StringUtils.isEmpty(chanlFlowNo)) {
-            throw new RuntimeException("请指定批次号.");
+            //throw new RuntimeException("请指定批次号.");
+            return;
         }
 
         this.paramBean = new BatchPayrollAgencyVO();

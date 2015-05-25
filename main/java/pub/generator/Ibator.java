@@ -21,6 +21,7 @@ public class Ibator {
         Ibator ibator = new Ibator();
 
         ibator.run("resources/generatorConfig.xml");
+//        ibator.run("resources/generatorConfig4Odsbpbs.xml");
     }
 
     public void run(String configfile) {

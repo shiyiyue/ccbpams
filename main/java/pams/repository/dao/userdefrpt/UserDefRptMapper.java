@@ -2,6 +2,7 @@ package pams.repository.dao.userdefrpt;
 
 import org.springframework.stereotype.Component;
 import pams.repository.model.ClsUdRptdata;
+import pams.repository.model.userdefrpt.UdRptFeedbackData;
 import pams.repository.model.userdefrpt.UserDefRptVO;
 
 import java.util.List;
@@ -16,6 +17,5 @@ import java.util.List;
 @Component
 public interface UserDefRptMapper {
     int countRecords(UserDefRptVO paramBean);
-    List<ClsUdRptdata> selectRecords(UserDefRptVO paramBean);
-    List<ClsUdRptdata> selectPagedRecords(UserDefRptVO paramBean);
+    List<UdRptFeedbackData> selectPagedRecords(UserDefRptVO paramBean);
 }

@@ -8,7 +8,7 @@
 
     <lifecycle>
         <phase-listener>
-            pub.auth.DebugPhaseListener
+            <!--pub.auth.DebugPhaseListener-->
         </phase-listener>
 <!--
         <phase-listener>

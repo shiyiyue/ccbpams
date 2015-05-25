@@ -22,6 +22,7 @@ import skyline.service.ToolsService;
 import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.SessionScoped;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.model.SelectItem;
@@ -36,7 +37,8 @@ import java.util.List;
  * Date: 20150301
  */
 @ManagedBean
-@ViewScoped
+//@ViewScoped
+@SessionScoped
 public class BatchPayrollAgencyAction implements Serializable {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -113,6 +115,7 @@ public class BatchPayrollAgencyAction implements Serializable {
             logger.error("查询数据时出现错误。", e);
             MessageUtil.addWarn("查询数据时出现错误。" + e.getMessage());
         }
+//        this.selectedRecord =
         return "batchPayrollAgencyDetl";
     }
 

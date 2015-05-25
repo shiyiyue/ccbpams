@@ -1,59 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="fip.repository.dao.fip.LazyDataCutpaydetlMapper">
+<mapper namespace="pams.repo4odsbpbs.dao.common.AssetQryMapper">
 
     <sql id="QueryCustinfo_Where_Clause">
       <where>
-          <if test = " seqNo != null and seqNo != '' ">
-              and a.BATCH_SN like '${seqNo}%'
-          </if>
-          <if test = " bizId != null and bizId != '' ">
-              <![CDATA[ and a.ORIGIN_BIZID = #{bizId}  ]]>
-          </if>
-          <if test = " archiveflag != null and archiveflag != '' ">
-              <![CDATA[ and a.ARCHIVEFLAG = #{archiveflag}  ]]>
-          </if>
-          <if test = " deletedflag != null and deletedflag != '' ">
-              <![CDATA[ and a.DELETEDFLAG = #{deletedflag}  ]]>
-          </if>
-          <if test = " startDate != null and startDate != '' ">
-                <![CDATA[ and a.BATCH_SN >= #{startDate} ]]>
-          </if>
-          <if test = " endDate != null and endDate != '' ">
-                <![CDATA[ and a.BATCH_SN < #{endDate} ]]>
-          </if>
-          <if test = " startAmt != null and startAmt != 0 ">
-              <![CDATA[ and a.PAYBACKAMT >= #{startAmt} ]]>
-          </if>
-          <if test = " endAmt != null and endAmt != 0 ">
-              <![CDATA[ and a.PAYBACKAMT <= #{endAmt}  ]]>
-          </if>
+          a.INST_NO in (select deptid from ptdept start with deptid = #{instNo}  connect by prior deptid = parentdeptid)
           <if test = " custName != null and custName != '' ">
-               and a.CLIENTNAME like '%${custName}%'
+              <![CDATA[ and a.CUST_NAME like '%'||#{custName}||'%' ]]>
+          </if>
+          <if test = " depStartAmt != null and depStartAmt != 0 ">
+              <![CDATA[ and a.DEP_TOTAL >= #{depStartAmt} ]]>
+          </if>
+          <if test = " depEndAmt != null and depEndAmt != 0 ">
+              <![CDATA[ and a.DEP_TOTAL <= #{depEndAmt}  ]]>
+          </if>
+          <if test = " fundStartAmt != null and fundStartAmt != 0 ">
+              <![CDATA[ and a.CURR_AMT >= #{fundStartAmt} ]]>
+          </if>
+          <if test = " fundEndAmt != null and fundEndAmt != 0 ">
+              <![CDATA[ and a.CURR_AMT <= #{fundEndAmt}  ]]>
+          </if>
+          <if test = " finStartAmt != null and finStartAmt != 0 ">
+              <![CDATA[ and a.FIN_TOTAL >= #{finStartAmt} ]]>
+          </if>
+          <if test = " finEndAmt != null and finEndAmt != 0 ">
+              <![CDATA[ and a.FIN_TOTAL <= #{finEndAmt}  ]]>
           </if>
       </where>
     </sql>
 
-    <select id="countRecords" parameterType="fip.repository.model.fip.LazyDataCutpaydetlParam" resultType="java.lang.Integer">
+    <select id="countRecords" parameterType="pams.repo4odsbpbs.model.common.AssetQryParam" resultType="java.lang.Integer">
           select count(*)
-            from FIP_CUTPAYDETL a
+            from QDBG_GJ_CUST_INFO_ALL a
              <include refid="QueryCustinfo_Where_Clause" />
     </select>
 
 
-    <select id="selectRecords" parameterType="fip.repository.model.fip.LazyDataCutpaydetlParam"  resultMap="fip.repository.dao.FipCutpaydetlMapper.BaseResultMap">
+    <select id="selectRecords" parameterType="pams.repo4odsbpbs.model.common.AssetQryParam"  resultType="pams.repo4odsbpbs.model.QdbgGjCustInfoAll">
         select  *
-            from FIP_CUTPAYDETL a
+            from QDBG_GJ_CUST_INFO_ALL a
           <include refid="QueryCustinfo_Where_Clause" />
-        order by a.branch_id
+        order by a.cust_no
     </select>
 
-    <select id="selectPagedRecords"  parameterType="fip.repository.model.fip.LazyDataCutpaydetlParam" resultMap="fip.repository.dao.FipCutpaydetlMapper.BaseResultMap">
+    <select id="selectPagedRecords"  parameterType="pams.repo4odsbpbs.model.common.AssetQryParam" resultType="pams.repo4odsbpbs.model.QdbgGjCustInfoAll">
         select *
           from (select t1.*, rownum rnum
                 from (
                     select  *
-                        from FIP_CUTPAYDETL a
+                        from QDBG_GJ_CUST_INFO_ALL a
                         <include refid="QueryCustinfo_Where_Clause" />
                     order by
                        <if test = " sortField != null and sortField != '' ">

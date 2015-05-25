@@ -1,19 +1,37 @@
 package pams.repository.model.userdefrpt;
 
+import pams.repository.model.ClsUdRptdata;
+
 /**
  * User: zhanrui
  * Date: 14-4-24
  * Time: ÏÂÎç1:41
  */
-public class UserDefRptVO {
-    private String branchId;
-    private String rptno;
+public class UserDefRptVO extends ClsUdRptdata{
+    private String startImpdate;
+    private String endImpdate;
 
     private int offset;
     private int pagesize;
     private String  sortField;
     private String  sortOrder;
 
+
+    public String getStartImpdate() {
+        return startImpdate;
+    }
+
+    public void setStartImpdate(String startImpdate) {
+        this.startImpdate = startImpdate;
+    }
+
+    public String getEndImpdate() {
+        return endImpdate;
+    }
+
+    public void setEndImpdate(String endImpdate) {
+        this.endImpdate = endImpdate;
+    }
 
     public int getOffset() {
         return offset;
@@ -47,20 +65,4 @@ public class UserDefRptVO {
         this.sortOrder = sortOrder;
     }
 
-    public String getBranchId() {
-        return branchId;
-    }
-
-    public void setBranchId(String branchId) {
-        this.branchId = branchId;
-    }
-
-
-    public String getRptno() {
-        return rptno;
-    }
-
-    public void setRptno(String rptno) {
-        this.rptno = rptno;
-    }
 }

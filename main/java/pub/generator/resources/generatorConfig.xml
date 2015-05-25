@@ -106,7 +106,11 @@
             <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
         </table>
         <table tableName="odsb_payagent_txn"  />
-       -->
+        <table tableName="odsb_pldf_batch" />
+        <table tableName="odsb_pldf_dtl" />
+ -->
+
+
         <!--对私客户信息 -->
         <!--
         <table tableName="sv_cms_custbase" >
@@ -156,11 +160,10 @@
         <!--<table tableName="cls_rptdata" />-->
 
 <!--
-        <table tableName="cls_ud_rptdata">
-            <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
-        </table>
+        <table tableName="cls_ud_rptdata" />
         <table tableName="cls_ud_tblinfo" />
         <table tableName="cls_ud_fldinfo" />
+        <table tableName="cls_ud_feedback" />
         <table tableName="odsb_stlcrd_bal">
             <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
         </table>
@@ -177,8 +180,7 @@
             <generatedKey column="guid" sqlStatement="select sys_guid() from dual" identity="false"/>
         </table>
 -->
-        <table tableName="odsb_pldf_batch" />
-        <table tableName="odsb_pldf_dtl" />
+
 
     </context>
 

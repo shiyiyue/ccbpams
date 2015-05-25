@@ -3,44 +3,89 @@
 <mapper namespace="pams.repository.dao.userdefrpt.UserDefRptMapper">
 
     <sql id="QueryCustinfo_Where_Clause">
-      <where>
-          a.BRANCHID in (select deptid from ptdept start with deptid = #{branchId}  connect by prior deptid = parentdeptid)
-          <if test = " rptno != null and rptno != '' ">
+        <where>
+            a.BRANCHID in (select deptid from ptdept start with deptid = #{branchid} connect by prior deptid =
+            parentdeptid)
+            <if test=" rpttype != null and rpttype != '' ">
+                <![CDATA[ and a.RPTTYPE = #{rpttype} ]]>
+            </if>
+            <if test=" rptno != null and rptno != '' ">
                 <![CDATA[ and a.RPTNO = #{rptno} ]]>
-          </if>
-      </where>
+            </if>
+            <if test=" startImpdate != null and startImpdate != '' ">
+                <![CDATA[ and a.IMPDATE >= #{startImpdate} ]]>
+            </if>
+            <if test=" endImpdate != null and endImpdate != '' ">
+                <![CDATA[ and a.IMPDATE <= #{endImpdate} ]]>
+            </if>
+            <if test=" fld01 != null and fld01 != '' ">
+                <![CDATA[ and a.FLD01 like  '%${fld01}%' ]]>
+            </if>
+            <if test=" fld02 != null and fld02 != '' ">
+                <![CDATA[ and a.FLD02 like '%${fld02}%' ]]>
+            </if>
+            <if test=" fld03 != null and fld03 != '' ">
+                <![CDATA[ and a.FLD03 like '%${fld03}%']]>
+            </if>
+            <if test=" fld04 != null and fld04 != '' ">
+                <![CDATA[ and a.FLD04 like '%${fld04}%']]>
+            </if>
+            <if test=" fld05 != null and fld05 != '' ">
+                <![CDATA[ and a.FLD05 like '%${fld05}%' ]]>
+            </if>
+            <if test=" fld06 != null and fld06 != '' ">
+                <![CDATA[ and a.FLD06 like  '%${fld06}%' ]]>
+            </if>
+            <if test=" fld07 != null and fld07 != '' ">
+                <![CDATA[ and a.FLD07 like '%${fld07}%' ]]>
+            </if>
+            <if test=" fld08 != null and fld08 != '' ">
+                <![CDATA[ and a.FLD08 like '%${fld08}%']]>
+            </if>
+            <if test=" fld09 != null and fld09 != '' ">
+                <![CDATA[ and a.FLD09 like '%${fld09}%']]>
+            </if>
+            <if test=" fld10 != null and fld10 != '' ">
+                <![CDATA[ and a.FLD10 like '%${fld10}%' ]]>
+            </if>
+        </where>
     </sql>
 
     <!--计算符合查询条件的记录数  -->
-    <select id="countRecords" parameterType="pams.repository.model.userdefrpt.UserDefRptVO" resultType="java.lang.Integer">
-          select count(*)
-            from CLS_UD_RPTDATA a
-             <include refid="QueryCustinfo_Where_Clause" />
+    <select id="countRecords" parameterType="pams.repository.model.userdefrpt.UserDefRptVO"
+            resultType="java.lang.Integer">
+        select count(*)
+        from CLS_UD_RPTDATA a left join CLS_UD_FEEDBACK b  on a.guid = b.rptkey
+        <include refid="QueryCustinfo_Where_Clause"/>
     </select>
 
 
-    <select id="selectRecords" parameterType="pams.repository.model.userdefrpt.UserDefRptVO"  resultMap="pams.repository.dao.ClsUdRptdataMapper.BaseResultMap">
-        select  *
-            from CLS_UD_RPTDATA a
-          <include refid="QueryCustinfo_Where_Clause" />
-        order by a.branchid
-    </select>
-
-    <select id="selectPagedRecords"  parameterType="pams.repository.model.userdefrpt.UserDefRptVO" resultMap="pams.repository.dao.ClsUdRptdataMapper.BaseResultMap">
+    <select id="selectPagedRecords" parameterType="pams.repository.model.userdefrpt.UserDefRptVO"
+            resultType="pams.repository.model.userdefrpt.UdRptFeedbackData">
         select *
-          from (select t1.*, rownum rnum
-                from (
-                    select  *
-                        from CLS_UD_RPTDATA a
-                        <include refid="QueryCustinfo_Where_Clause" />
-                    order by
-                       <if test = " sortField != null and sortField != '' ">
-                            ${sortField}
-                       </if>
-                       <if test = " sortOrder != null and sortOrder != '' ">
-                            ${sortOrder}
-                       </if>
-                       , rowid
+        from (select t1.*, rownum rnum
+        from (
+
+            select a.*,
+                b.ismarketed,
+                b.isrefused,
+                b.marketdate,
+                b.marketoper,
+                b.refusedate,
+                b.refuseoper,
+                b.remark
+            from CLS_UD_RPTDATA a
+              left join CLS_UD_FEEDBACK b  on a.guid = b.rptkey
+
+        <include refid="QueryCustinfo_Where_Clause"/>
+        order by
+        <if test=" sortField != null and sortField != '' ">
+            ${sortField}
+        </if>
+        <if test=" sortOrder != null and sortOrder != '' ">
+            ${sortOrder}
+        </if>
+        , a.guid
         ) t1
         <![CDATA[
         where rownum <= #{pagesize}) t2

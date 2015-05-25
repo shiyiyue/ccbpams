@@ -2,15 +2,14 @@ package pams.view.userdefrpt;
 
 import org.apache.commons.lang.StringUtils;
 import org.primefaces.component.datatable.DataTable;
+import org.primefaces.event.SelectEvent;
 import org.primefaces.model.LazyDataModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pams.common.SystemService;
 import pams.common.utils.MessageUtil;
-import pams.repository.model.ClsUdFldinfo;
-import pams.repository.model.ClsUdRptdata;
-import pams.repository.model.ClsUdTblinfo;
-import pams.repository.model.Ptoplog;
+import pams.repository.model.*;
+import pams.repository.model.userdefrpt.UdRptFeedbackData;
 import pams.repository.model.userdefrpt.UserDefRptVO;
 import pams.service.userdefrpt.UserDefRptService;
 import pub.platform.security.OperatorManager;
@@ -41,15 +40,20 @@ public class UserDefRptShowAction implements Serializable {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private UserDefRptVO paramBean;
-    private ClsUdRptdata selectedRecord;
+    private UdRptFeedbackData selectedRecord;
+    private List<UdRptFeedbackData> selectedRecords;
 
     private boolean isBizBranch; //是否业务网点
     private String title = "...";
     private String tableWidth = "width:100%";
     private String rptno;
-    Map<String,String> banksMap = new HashMap<>();
+    private String rpttype;
+    private boolean marketed;
+    private boolean refused;
+    Map<String, String> banksMap = new HashMap<>();
+    Map<String, String> fieldsMap = new HashMap<>();
 
-    private LazyDataModel<ClsUdRptdata> lazyDataModel;
+    private LazyDataModel<UdRptFeedbackData> lazyDataModel;
     private List<SelectItem> branchList;
     private List<ColumnModel> columns = new ArrayList<ColumnModel>();
 
@@ -84,8 +88,12 @@ public class UserDefRptShowAction implements Serializable {
     @PostConstruct
     public void init() {
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        rpttype = StringUtils.isEmpty(paramsMap.get("rpttype")) ? "" : paramsMap.get("rpttype");
         rptno = StringUtils.isEmpty(paramsMap.get("rptno")) ? "" : paramsMap.get("rptno");
 
+        if (StringUtils.isEmpty(rpttype)) {
+            throw new RuntimeException("请指定报表类型.");
+        }
         if (StringUtils.isEmpty(rptno)) {
             throw new RuntimeException("请指定报表编号.");
         }
@@ -107,24 +115,29 @@ public class UserDefRptShowAction implements Serializable {
         List<String> bankIdAndNames = platformService.selectBranchIdAndName(branchid);
         for (String bankIdAndName : bankIdAndNames) {
             String[] sa = bankIdAndName.split("\\|");
-            banksMap.put(sa[0].trim(),sa[1].trim());
+            banksMap.put(sa[0].trim(), sa[1].trim());
         }
 
         //动态生成dtatable column
         columns.add(new ColumnModel("机构号", "branchid"));
-        List<ClsUdFldinfo> fldinfos = userDefRptService.selectColumnsDefine(rptno);
+        List<ClsUdFldinfo> fldinfos = userDefRptService.selectColumnsDefine(rpttype, rptno);
         for (ClsUdFldinfo fldinfo : fldinfos) {
-            columns.add(new ColumnModel(fldinfo.getFldname(), "fld"+fldinfo.getFldsn()));
+            columns.add(new ColumnModel(fldinfo.getFldname(), "fld" + fldinfo.getFldsn()));
+            fieldsMap.put("fld" + fldinfo.getFldsn(), fldinfo.getFldname());
         }
 
         //设置UI表格宽度
         tableWidth = "width:" + 100 * fldinfos.size() + "px;";
 
         //表信息
-        ClsUdTblinfo clsUdTblinfo = userDefRptService.selectTblInfo(rptno);
+        ClsUdTblinfo clsUdTblinfo = new ClsUdTblinfo();
+        clsUdTblinfo.setRpttype(rpttype);
+        clsUdTblinfo.setRptno(rptno);
+        clsUdTblinfo = userDefRptService.selectTblInfo(clsUdTblinfo);
         title = clsUdTblinfo.getRptname();
 
-        this.paramBean.setBranchId(branchid);
+        this.paramBean.setBranchid(branchid);
+        this.paramBean.setRptno(rpttype);
         this.paramBean.setRptno(rptno);
         this.paramBean.setPagesize(0);
         this.paramBean.setOffset(0);
@@ -133,8 +146,8 @@ public class UserDefRptShowAction implements Serializable {
 
         Ptoplog oplog = new Ptoplog();
         oplog.setActionId("UserDefRptShow_onQuery");
-        oplog.setActionName("阶段性攻坚报表:查询 " + title);
-        oplog.setOpDataBranchid(this.paramBean.getBranchId());
+        oplog.setActionName("自定义报表[" + title + "]:查询");
+        oplog.setOpDataBranchid(this.paramBean.getBranchid());
         platformService.insertNewOperationLog(oplog);
     }
 
@@ -142,8 +155,8 @@ public class UserDefRptShowAction implements Serializable {
         try {
             Ptoplog oplog = new Ptoplog();
             oplog.setActionId("UserDefRptShow_onQuery");
-            oplog.setActionName("阶段性攻坚报表:查询 " + title);
-            oplog.setOpDataBranchid(this.paramBean.getBranchId());
+            oplog.setActionName("自定义报表[" + title + "]:查询");
+            oplog.setOpDataBranchid(this.paramBean.getBranchid());
             platformService.insertNewOperationLog(oplog);
 
             this.paramBean.setRptno(rptno);
@@ -156,6 +169,37 @@ public class UserDefRptShowAction implements Serializable {
         return null;
     }
 
+
+    public void onRowSelect(SelectEvent event) {
+        try {
+            this.selectedRecord = (UdRptFeedbackData) event.getObject();
+        } catch (Exception e) {
+            MessageUtil.addWarn(e.getMessage());
+        }
+    }
+
+    //单条记录反馈处理
+    public void onSingleFeedback(String isMarketed, String isRefused) {
+        try {
+            selectedRecord.setIsmarketed(isMarketed);
+            selectedRecord.setIsrefused(isRefused);
+            userDefRptService.processSingleFeedback(selectedRecord);
+        } catch (Exception e) {
+            MessageUtil.addWarn("系统处理错误." + e.getMessage());
+        }
+    }
+    //多条记录反馈处理
+    public void onMultiFeedback(String isMarketed, String isRefused) {
+        try {
+            for (UdRptFeedbackData record : selectedRecords) {
+                record.setIsmarketed(isMarketed);
+                record.setIsrefused(isRefused);
+                userDefRptService.processSingleFeedback(record);
+            }
+        } catch (Exception e) {
+            MessageUtil.addWarn("系统处理错误." + e.getMessage());
+        }
+    }
     //===================================================================
 
     public UserDefRptVO getParamBean() {
@@ -166,19 +210,19 @@ public class UserDefRptShowAction implements Serializable {
         this.paramBean = paramBean;
     }
 
-    public ClsUdRptdata getSelectedRecord() {
+    public UdRptFeedbackData getSelectedRecord() {
         return selectedRecord;
     }
 
-    public void setSelectedRecord(ClsUdRptdata selectedRecord) {
+    public void setSelectedRecord(UdRptFeedbackData selectedRecord) {
         this.selectedRecord = selectedRecord;
     }
 
-    public LazyDataModel<ClsUdRptdata> getLazyDataModel() {
+    public LazyDataModel<UdRptFeedbackData> getLazyDataModel() {
         return lazyDataModel;
     }
 
-    public void setLazyDataModel(LazyDataModel<ClsUdRptdata> lazyDataModel) {
+    public void setLazyDataModel(LazyDataModel<UdRptFeedbackData> lazyDataModel) {
         this.lazyDataModel = lazyDataModel;
     }
 
@@ -261,5 +305,37 @@ public class UserDefRptShowAction implements Serializable {
 
     public void setTableWidth(String tableWidth) {
         this.tableWidth = tableWidth;
+    }
+
+    public Map<String, String> getFieldsMap() {
+        return fieldsMap;
+    }
+
+    public void setFieldsMap(Map<String, String> fieldsMap) {
+        this.fieldsMap = fieldsMap;
+    }
+
+    public boolean isMarketed() {
+        return marketed;
+    }
+
+    public void setMarketed(boolean marketed) {
+        this.marketed = marketed;
+    }
+
+    public boolean isRefused() {
+        return refused;
+    }
+
+    public void setRefused(boolean refused) {
+        this.refused = refused;
+    }
+
+    public List<UdRptFeedbackData> getSelectedRecords() {
+        return selectedRecords;
+    }
+
+    public void setSelectedRecords(List<UdRptFeedbackData> selectedRecords) {
+        this.selectedRecords = selectedRecords;
     }
 }

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import pams.common.SystemService;
 import pams.common.utils.MessageUtil;
 import pams.repository.model.ClsUdTblinfo;
+import pams.repository.model.Ptenudetail;
 import pams.repository.model.Ptoplog;
 import pams.repository.model.userdefrpt.UserDefRptVO;
 import pams.service.userdefrpt.UserDefRptService;
@@ -44,8 +45,8 @@ public class UserDefRptMngAction implements Serializable {
 
     private boolean isBizBranch; //是否业务网点
     private String title = "...";
+    private String rpttype;
     private String rptno;
-    private boolean isPvtRpt = true;  //默认对私报表
     private String operation = "create"; // create update clear
     private UploadedFile uploadedFile;
 
@@ -65,41 +66,33 @@ public class UserDefRptMngAction implements Serializable {
         operid = om.getOperatorId();
         branchid = om.getOperator().getDeptid();
 
-        this.paramBean.setBranchId(branchid);
+        this.paramBean.setBranchid(branchid);
 
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
+        rpttype = StringUtils.isEmpty(paramsMap.get("rpttype")) ? "" : paramsMap.get("rpttype");
         rptno = StringUtils.isEmpty(paramsMap.get("rptno")) ? "" : paramsMap.get("rptno");
 
-        if (!StringUtils.isEmpty(paramsMap.get("rptno"))) {
-            if (rptno.startsWith("E")) {
-                isPvtRpt = false;
-            }
-        } else {
-            String rpttype = StringUtils.isEmpty(paramsMap.get("type")) ? "" : paramsMap.get("type");
-            if ("E".equalsIgnoreCase(rpttype)) {
-                isPvtRpt = false;
-            }
+
+        if (StringUtils.isBlank(paramsMap.get("rpttype"))) {
+            throw new RuntimeException("报表类型未定义");
         }
 
-        if (isPvtRpt) {
-            title = "阶段性攻坚活动报表";
-        } else {
-            title = "对公客户营销数据报表";//对公
-        }
+        clsUdTblinfo.setRpttype(rpttype);
+        title = "请在字典中定义标题：" + rpttype;
 
-        //HttpServletRequest request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
-        detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
+        List<Ptenudetail> ptenudetails = platformService.selectEnuDetail("USERDEFRPTTITLE");
+        for (Ptenudetail ptenudetail : ptenudetails) {
+            if (ptenudetail.getEnuitemvalue().equals(rpttype)) {
+                title = ptenudetail.getEnuitemlabel();
+            }
+        }
+        detlRecords = userDefRptService.selectTblInfos(rpttype);
     }
 
     public void onCreateRpt() {
         try {
-            if (!isPvtRpt) {
-                if (!clsUdTblinfo.getRptno().startsWith("E")) {
-                    clsUdTblinfo.setRptno("E" + clsUdTblinfo.getRptno());
-                }
-            }
             //检查KEY重复
-            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo.getRptno());
+            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo);
             if (tbl_db != null) {
                 MessageUtil.addError("报表编号重复");
                 return;
@@ -109,14 +102,14 @@ public class UserDefRptMngAction implements Serializable {
             clsUdTblinfo.setRemark(new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "新增,操作人:" + operid);
             clsUdTblinfo.setRecver(1);
             userDefRptService.insertTblInfo(clsUdTblinfo);
-            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
+            detlRecords = userDefRptService.selectTblInfos(rpttype);
             clsUdTblinfo = new ClsUdTblinfo();
-
+            clsUdTblinfo.setRpttype(rpttype);
 
             Ptoplog oplog = new Ptoplog();
             oplog.setActionId("UserDefRptMng_onAddRpt");
             oplog.setActionName("阶段性攻坚报表:新增报表");
-            oplog.setOpDataBranchid(this.paramBean.getBranchId());
+            oplog.setOpDataBranchid(this.paramBean.getBranchid());
             platformService.insertNewOperationLog(oplog);
         } catch (Exception e) {
             logger.error("新增报表时出现错误。", e);
@@ -126,28 +119,22 @@ public class UserDefRptMngAction implements Serializable {
 
     public void onUpdateRpt() {
         try {
-            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo.getRptno());
+            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo);
             if (tbl_db == null) {
                 MessageUtil.addError("报表不存在。");
                 return;
             }
 
             userDefRptService.modifyTblInfo(clsUdTblinfo);
-            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
+            detlRecords = userDefRptService.selectTblInfos(rpttype);
             clsUdTblinfo = new ClsUdTblinfo();
+            clsUdTblinfo.setRpttype(rpttype);
             operation = "create";
             RequestContext.getCurrentInstance().execute("document.forms['form']['form:tabview:rptnoInput'].disabled = false;");
-/*
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:addbtn').disabled = false;");
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:modibtn').disabled = true;");
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:delbtn').disabled = true;");
-            RequestContext.getCurrentInstance().update(":form:tabview:formpanel");
-*/
-
             Ptoplog oplog = new Ptoplog();
             oplog.setActionId("UserDefRptMng_onModifyRpt");
             oplog.setActionName("阶段性攻坚报表:报表修改");
-            oplog.setOpDataBranchid(this.paramBean.getBranchId());
+            oplog.setOpDataBranchid(this.paramBean.getBranchid());
             platformService.insertNewOperationLog(oplog);
         } catch (Exception e) {
             logger.error("报表修改时出现错误。", e);
@@ -157,29 +144,23 @@ public class UserDefRptMngAction implements Serializable {
 
     public void onClearRpt() {
         try {
-            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo.getRptno());
+            ClsUdTblinfo tbl_db = userDefRptService.selectTblInfo(clsUdTblinfo);
             if (tbl_db == null) {
                 MessageUtil.addError("报表不存在。");
                 return;
             }
-            userDefRptService.clearAllRptInfo(clsUdTblinfo.getRptno());
-            detlRecords = userDefRptService.selectTblInfos(isPvtRpt);
+            userDefRptService.clearAllRptInfo(rpttype, clsUdTblinfo.getRptno());
+            detlRecords = userDefRptService.selectTblInfos(rpttype);
             clsUdTblinfo = new ClsUdTblinfo();
+            clsUdTblinfo.setRpttype(rpttype);
             operation = "create";
 
             RequestContext.getCurrentInstance().execute("document.forms['form']['form:tabview:rptnoInput'].disabled = false;");
 
-/*
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:addbtn').disabled = false;");
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:modibtn').disabled = true;");
-            RequestContext.getCurrentInstance().execute("document.getElementById('form:tabview:delbtn').disabled = true;");
-            RequestContext.getCurrentInstance().update("form:tabview:formpanel");
-*/
-
             Ptoplog oplog = new Ptoplog();
             oplog.setActionId("UserDefRptMng_onDeleteRpt");
             oplog.setActionName("阶段性攻坚报表:报表清除");
-            oplog.setOpDataBranchid(this.paramBean.getBranchId());
+            oplog.setOpDataBranchid(this.paramBean.getBranchid());
             platformService.insertNewOperationLog(oplog);
         } catch (Exception e) {
             logger.error("报表清除时出现错误。", e);
@@ -187,14 +168,9 @@ public class UserDefRptMngAction implements Serializable {
         }
     }
 
-    public String startShowRpt() {
-        return "userDefRptShow";
-    }
 
     public String startImport() {
         return "rptDataImp";
-//        return "rptDataImp_2?rptno=" + selectedRecord.getRptno();
-//        return "rptDataImp?faces-redirect=true&rptno=" + clsUdTblinfo.getRptno();
     }
 
     public void startUpdateRpt() {

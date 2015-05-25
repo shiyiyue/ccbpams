@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -39,6 +40,7 @@ public class DataImportAction implements Serializable {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String rptno;
+    private String rpttype;
     private String rptname;
     private String rptdate;
     private int impcount;
@@ -48,6 +50,7 @@ public class DataImportAction implements Serializable {
     private boolean isUploadSuccess;
     private boolean pollStop = false;
 
+    private int rowcount4oldData;
 
     private UploadedFile file;
 
@@ -63,14 +66,20 @@ public class DataImportAction implements Serializable {
     public void init() {
         Map<String, String> paramsMap = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap();
         rptno = StringUtils.isEmpty(paramsMap.get("rptno")) ? "" : paramsMap.get("rptno");
+        rpttype = StringUtils.isEmpty(paramsMap.get("rpttype")) ? "" : paramsMap.get("rpttype");
         rptname = StringUtils.isEmpty(paramsMap.get("rptname")) ? "" : paramsMap.get("rptname");
         rptdate = StringUtils.isEmpty(paramsMap.get("rptdate")) ? "" : paramsMap.get("rptdate");
         if (StringUtils.isEmpty(rptno)) {
             throw new RuntimeException("请指定报表编号.");
         }
+        if (StringUtils.isEmpty(rpttype)) {
+            throw new RuntimeException("请指定报表类别.");
+        }
+
+        rowcount4oldData = userDefRptService.countRptRecord(rpttype, rptno);
     }
 
-    public void onUpload() {
+    public void onUpload(boolean isClear) {
         isUploadSuccess = false;
         pollStop = false;
         long start = System.currentTimeMillis();
@@ -86,11 +95,6 @@ public class DataImportAction implements Serializable {
 
             rowcount = sheet.getLastRowNum() + 1;
 
-            //清理原有 字段定义
-            userDefRptService.clearColumnNames(rptno);
-            //清理原有报表数据
-            userDefRptService.clearRptData(rptno);
-
             //根据第一列的字段数 设置列数
             cellcount = sheet.getRow(0).getLastCellNum();
 
@@ -98,11 +102,28 @@ public class DataImportAction implements Serializable {
 
             //设置数据库表字段信息
             getOneRow(sheet, 0, cellcount, fields);
-            userDefRptService.insertColumnDefInfo(rptno, fields);
+
+            if (isClear) {
+                //清理原有 字段定义
+                userDefRptService.clearColumnNames(rpttype, rptno);
+                //清理原有报表数据
+                userDefRptService.clearRptData(rpttype, rptno);
+                userDefRptService.insertColumnDefInfo(rpttype, rptno, fields);
+            }
+
             rowcount--;
 
-            //判断是否包含客户信息
-            isMayImpCustInfo = isIncludeCustInfo(fields);
+            if ("PB".equals(rpttype)) {//对私业务 判断客户信息字段
+                //判断是否包含客户信息
+                isMayImpCustInfo = isIncludeCustInfo(fields);
+            }
+
+            String sn = new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date());
+            sn = rpttype + rptno + "-" + sn + "-";
+            int snLen = 40 - sn.length();
+            if (snLen > 8) {
+                snLen = 8;
+            }
 
             //数据导入
             for (int i = 1; i <= rowcount; i++) {
@@ -110,13 +131,13 @@ public class DataImportAction implements Serializable {
                 if (StringUtils.isEmpty(fields[0])) { //第一列为空
                     break;
                 } else {
-                    userDefRptService.insertRptData(rptno, fields);
+                    userDefRptService.insertRptData(sn + StringUtils.leftPad("" + i, snLen, "0"), rpttype, rptno, fields);
                     impcount++;
                 }
             }
 
             //更新导入时间
-            userDefRptService.updateImportDataDate(rptno);
+            userDefRptService.updateImportDataDate(rpttype, rptno);
 
             isUploadSuccess = true;
             MessageUtil.addInfo(" 已成功导入。");
@@ -146,7 +167,7 @@ public class DataImportAction implements Serializable {
 
     public void onUploadCustInfo() {
         try {
-            userDefRptService.mergeCustBaseRecordsForUserDefRpt(rptno, rptdate);
+            userDefRptService.mergeCustBaseRecordsForUserDefRpt(rpttype, rptno, rptdate);
             MessageUtil.addInfo("客户基本信息处理完成...");
         } catch (Exception ex) {
             logger.error("数据处理错误。", ex);
@@ -305,5 +326,17 @@ public class DataImportAction implements Serializable {
 
     public void setPollStop(boolean pollStop) {
         this.pollStop = pollStop;
+    }
+
+    public String getRpttype() {
+        return rpttype;
+    }
+
+    public void setRpttype(String rpttype) {
+        this.rpttype = rpttype;
+    }
+
+    public int getRowcount4oldData() {
+        return rowcount4oldData;
     }
 }

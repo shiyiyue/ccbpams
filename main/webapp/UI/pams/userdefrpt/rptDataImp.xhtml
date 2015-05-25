@@ -72,10 +72,17 @@
                                           mode="simple"
                                           allowTypes="/(\.|\/)(xlsx)$/"/>
                         </h:panelGrid>
-                        <h:panelGrid  cellpadding="0" cellspacing="5" columns="3">
-                            <p:commandButton value="数据导入" ajax="false"
-                                             style="width: 120px;"
-                                             action="#{dataImportAction.onUpload}"
+                        <h:panelGrid  cellpadding="0" cellspacing="5" columns="2">
+                            <h:outputLabel value="报表原有记录数:#{dataImportAction.rowcount4oldData}"/>
+                        </h:panelGrid>
+                        <h:panelGrid  cellpadding="0" cellspacing="5" columns="5">
+                            <p:commandButton value="数据导入(清除原有数据)" ajax="false"
+                                             style="width: 200px;"
+                                             action="#{dataImportAction.onUpload(true)}"
+                                             update="msgs"/>
+                            <p:commandButton value="数据导入(保留原有数据)" ajax="false"
+                                             style="width: 200px;"
+                                             action="#{dataImportAction.onUpload(false)}"
                                              update="msgs"/>
                             <p:commandButton value="客户信息导入" ajax="false"
                                              style="width: 120px;"
@@ -83,8 +90,9 @@
                                              rendered="#{dataImportAction.mayImpCustInfo == true}"
                                              update="msgs"/>
                             <p:commandButton id="back" ajax="false" value="返  回"
-                                             style="width: 120px;"
+                                             style="width: 100px;"
                                              action="#{dataImportAction.onBack}">
+                                <f:param value="#{dataImportAction.rpttype}" name="rpttype"/>
                                 <f:param value="#{dataImportAction.rptno}" name="rptno"/>
                             </p:commandButton>
                         </h:panelGrid>

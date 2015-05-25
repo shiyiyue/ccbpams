@@ -62,18 +62,25 @@
     <!-- enable transaction demarcation with annotations -->
     <tx:annotation-driven/>
 
+    <bean name="paginationInterceptor" class="skyline.mybatis.PaginationInterceptor" />
+
     <!-- define the SqlSessionFactory, notice that configLocation is not needed when you use MapperFactoryBean -->
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
-        <!--<property name="typeAliasesPackage" value="ldg.mybatis.model" />-->
-        <!--<property name="configLocation" value="classpath:/mybatis-config.xml" />-->
+        <!--<property name="typeAliasesPackage" value="fbi.mybatis.model" />-->
         <property name="dataSource" ref="pamsDataSource"/>
-        <property name="mapperLocations" value="classpath*:pams/repository/mapper/**/*.xml"/>
+        <property name="mapperLocations" value="classpath*:pams/repo*/mapper/**/*.xml"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <property name="plugins">
+            <list>
+                <ref bean="paginationInterceptor" />
+            </list>
+        </property>
     </bean>
 
     <!-- scan for mappers and let them be autowired -->
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage"
-                  value="pams.repository.dao,pams.repository.dao.telemarketing"/>
+                  value="pams.repository.dao,pams.repo4odsbpbs.dao"/>
     </bean>
 
 
@@ -85,7 +92,7 @@
         <property name="targetObject" ref="prdsetAutoDeletor"/>
         <property name="targetMethod" value="run"/>
     </bean>
-    <bean id="autodeleteCronTriggerBean" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <bean id="autodeleteCronTriggerBean" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="prdsetAutoDeleteJobDetailBean"/>
         <!--<property name="cronExpression" value="0/10 * * * * ?" />-->
         <property name="cronExpression" value="0 10 23 * * ?"/>
@@ -98,7 +105,7 @@
         <property name="targetObject" ref="prdsetCheck"/>
         <property name="targetMethod" value="run"/>
     </bean>
-    <bean id="prdsetCheckCronTriggerBean" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    <bean id="prdsetCheckCronTriggerBean" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
         <property name="jobDetail" ref="prdsetCheckJobDetailBean"/>
         <!--<property name="cronExpression" value="0/20 * * * * ?"/>-->
         <property name="cronExpression" value="0 15 06,22 * * ?"/>

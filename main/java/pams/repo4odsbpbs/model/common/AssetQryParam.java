@@ -4,58 +4,60 @@ import java.math.BigDecimal;
 
 /**
  * User: zhanrui
- * Date: 2014-11-24
  */
 public class AssetQryParam {
-    private String seqNo;  //batch_sn + batch_detl_sn
-    private String iouNo;
-    private String billStatus;
-    private String bankId;
+    private String rptDate;
+    private String instNo;
+    private String custNo;
+    private String certType;
+    private String certNo;
     private String custName;
     private String startDate;
     private String endDate;
-    private String bizId;
-    private String archiveflag;
-    private String deletedflag;
-    private BigDecimal startAmt;
-    private BigDecimal endAmt;
+    private BigDecimal depStartAmt; //存款
+    private BigDecimal depEndAmt;
+    private BigDecimal fundStartAmt; //基金
+    private BigDecimal fundEndAmt;
+    private BigDecimal finStartAmt; //理财
+    private BigDecimal finEndAmt;
+    private BigDecimal ctsStartAmt; //CTS
+    private BigDecimal ctsEndAmt;
 
     private int offset;
     private int pagesize;
     private String sortField;
     private String sortOrder;
 
-
-    public String getSeqNo() {
-        return seqNo;
+    public String getRptDate() {
+        return rptDate;
     }
 
-    public void setSeqNo(String seqNo) {
-        this.seqNo = seqNo;
+    public void setRptDate(String rptDate) {
+        this.rptDate = rptDate;
     }
 
-    public String getIouNo() {
-        return iouNo;
+    public String getCustNo() {
+        return custNo;
     }
 
-    public void setIouNo(String iouNo) {
-        this.iouNo = iouNo;
+    public void setCustNo(String custNo) {
+        this.custNo = custNo;
     }
 
-    public String getBillStatus() {
-        return billStatus;
+    public String getCertType() {
+        return certType;
     }
 
-    public void setBillStatus(String billStatus) {
-        this.billStatus = billStatus;
+    public void setCertType(String certType) {
+        this.certType = certType;
     }
 
-    public String getBankId() {
-        return bankId;
+    public String getCertNo() {
+        return certNo;
     }
 
-    public void setBankId(String bankId) {
-        this.bankId = bankId;
+    public void setCertNo(String certNo) {
+        this.certNo = certNo;
     }
 
     public String getCustName() {
@@ -82,20 +84,68 @@ public class AssetQryParam {
         this.endDate = endDate;
     }
 
-    public BigDecimal getStartAmt() {
-        return startAmt;
+    public BigDecimal getDepStartAmt() {
+        return depStartAmt;
     }
 
-    public void setStartAmt(BigDecimal startAmt) {
-        this.startAmt = startAmt;
+    public void setDepStartAmt(BigDecimal depStartAmt) {
+        this.depStartAmt = depStartAmt;
     }
 
-    public BigDecimal getEndAmt() {
-        return endAmt;
+    public BigDecimal getDepEndAmt() {
+        return depEndAmt;
     }
 
-    public void setEndAmt(BigDecimal endAmt) {
-        this.endAmt = endAmt;
+    public void setDepEndAmt(BigDecimal depEndAmt) {
+        this.depEndAmt = depEndAmt;
+    }
+
+    public BigDecimal getFundStartAmt() {
+        return fundStartAmt;
+    }
+
+    public void setFundStartAmt(BigDecimal fundStartAmt) {
+        this.fundStartAmt = fundStartAmt;
+    }
+
+    public BigDecimal getFundEndAmt() {
+        return fundEndAmt;
+    }
+
+    public void setFundEndAmt(BigDecimal fundEndAmt) {
+        this.fundEndAmt = fundEndAmt;
+    }
+
+    public BigDecimal getFinStartAmt() {
+        return finStartAmt;
+    }
+
+    public void setFinStartAmt(BigDecimal finStartAmt) {
+        this.finStartAmt = finStartAmt;
+    }
+
+    public BigDecimal getFinEndAmt() {
+        return finEndAmt;
+    }
+
+    public void setFinEndAmt(BigDecimal finEndAmt) {
+        this.finEndAmt = finEndAmt;
+    }
+
+    public BigDecimal getCtsStartAmt() {
+        return ctsStartAmt;
+    }
+
+    public void setCtsStartAmt(BigDecimal ctsStartAmt) {
+        this.ctsStartAmt = ctsStartAmt;
+    }
+
+    public BigDecimal getCtsEndAmt() {
+        return ctsEndAmt;
+    }
+
+    public void setCtsEndAmt(BigDecimal ctsEndAmt) {
+        this.ctsEndAmt = ctsEndAmt;
     }
 
     public int getOffset() {
@@ -130,27 +180,11 @@ public class AssetQryParam {
         this.sortOrder = sortOrder;
     }
 
-    public String getBizId() {
-        return bizId;
+    public String getInstNo() {
+        return instNo;
     }
 
-    public void setBizId(String bizId) {
-        this.bizId = bizId;
-    }
-
-    public String getArchiveflag() {
-        return archiveflag;
-    }
-
-    public void setArchiveflag(String archiveflag) {
-        this.archiveflag = archiveflag;
-    }
-
-    public String getDeletedflag() {
-        return deletedflag;
-    }
-
-    public void setDeletedflag(String deletedflag) {
-        this.deletedflag = deletedflag;
+    public void setInstNo(String instNo) {
+        this.instNo = instNo;
     }
 }

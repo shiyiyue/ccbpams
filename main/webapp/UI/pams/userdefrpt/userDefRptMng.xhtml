@@ -65,7 +65,7 @@
                                  rowsPerPageTemplate="100,50,30,15,5"
                                  emptyMessage="数据记录为空...">
 
-                        <p:column style="text-align:center">
+                        <p:column style="text-align:center" sortBy="#{record.rptno}">
                             <f:facet name="header">
                                 报表编号
                             </f:facet>
@@ -83,7 +83,7 @@
                             </f:facet>
                             <h:outputText value="#{record.rptdesc}"/>
                         </p:column>
-                        <p:column style="text-align:center">
+                        <p:column style="text-align:center" sortBy="#{record.startdate}">
                             <f:facet name="header">
                                 启动日期
                             </f:facet>
@@ -95,7 +95,7 @@
                             </f:facet>
                             <h:outputText value="#{record.enddate}"/>
                         </p:column>
-                        <p:column style="text-align:center">
+                        <p:column style="text-align:center" sortBy="#{record.impdate}">
                             <f:facet name="header">
                                 数据导入日期
                             </f:facet>
@@ -106,6 +106,7 @@
                                            action="#{userDefRptMngAction.startImport}"
                                            style="color: blue; margin-right:5px">
                                 <f:param name="rptno" value="#{record.rptno}"/>
+                                <f:param name="rpttype" value="#{record.rpttype}"/>
                                 <f:param name="rptname" value="#{record.rptname}"/>
                                 <f:param name="rptdate" value="#{record.startdate}"/>
                                 <f:setPropertyActionListener value="#{record}"
@@ -116,24 +117,23 @@
                                            update=":form:tabview:formpanel"
                                            action="#{userDefRptMngAction.startUpdateRpt}"
                                            style="color: blue; margin-right:5px">
-                                <f:param name="rptno" value="#{record.rptno}"/>
                                 <f:setPropertyActionListener value="#{record}"
                                                              target="#{userDefRptMngAction.selectedRecord}"/>
                             </p:commandLink>
-                            <p:commandLink value="清除数据"
+                            <p:commandLink value="删除报表"
                                            process="@this"
                                            update=":form:tabview:formpanel"
                                            action="#{userDefRptMngAction.startClearRpt}"
                                            style="color: blue; margin-right:5px">
-                                <f:param name="rptno" value="#{record.rptno}"/>
                                 <f:setPropertyActionListener value="#{record}"
                                                              target="#{userDefRptMngAction.selectedRecord}"/>
                             </p:commandLink>
                         </p:column>
                         <p:column headerText="数据操作" style="text-align:center">
                             <p:commandLink value="数据展示" immediate="true" ajax="false"
-                                           action="#{userDefRptMngAction.startShowRpt}"
+                                           action="userDefRptShow"
                                            style="color: blue; margin-right:5px">
+                                <f:param name="rpttype" value="#{record.rpttype}"/>
                                 <f:param name="rptno" value="#{record.rptno}"/>
                             </p:commandLink>
                         </p:column>

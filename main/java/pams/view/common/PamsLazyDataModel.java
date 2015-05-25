@@ -5,7 +5,7 @@ import org.primefaces.model.LazyDataModel;
 /**
  * Created by zhanrui on 2015/5/22.
  */
-public class PamsLazyDataModel extends LazyDataModel{
+public class PamsLazyDataModel<T> extends LazyDataModel<T> {
     protected String changeBeanPropertyName2DBTableFieldName(String propertyName) {
         char[] ch = propertyName.toCharArray();
         StringBuilder sb = new StringBuilder();

@@ -82,6 +82,7 @@
                  from (select t2.startdate as rpt_date, t1.*
                          from CLS_UD_RPTDATA t1, CLS_UD_TBLINFO t2
                         where t1.rptno = t2.rptno
+                          and t1.rpttype = #{rptType}
                           and t1.rptno = #{rptNo}
                           and t2.startdate = #{rptDate}) t
                 group by t.BRANCHID, t.FLD01) b
@@ -545,7 +546,7 @@
                      WHERE LENGTH(SAVACCTID) <> 1
                        AND ACCT_STS = '0'
                        AND CUST_TYP = '1'
-                       and CURRENT_BAL >= 50000) T1
+                       and CURRENT_BAL >= 0) T1
               LEFT JOIN BF_PR_BR_INSTN T2 ON T1.BANK_ACCT_INSTN_NUM = T2.OPR_UNIT_CD
               LEFT JOIN BF_AGT_DEP_ACCT_SAP T3 ON T1.SAVACCTID = T3.CUST_ACCT_NO
               LEFT JOIN BF_AGT_DEP_ACCT_SAP T4 ON T1.SAVACCTID = T4.CRD_NO
@@ -565,7 +566,7 @@
                AND LENGTH(T1.SAVACCTID) = 1
                AND T1.ACCT_STS = '0'
                AND T1.CUST_TYP = '1'
-               and CURRENT_BAL >= 50000
+               and CURRENT_BAL >= 0
         ]]>
     </insert>
     <!--结算通卡余额明细表  -->

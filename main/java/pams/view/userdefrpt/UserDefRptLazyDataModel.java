@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pams.repository.dao.userdefrpt.UserDefRptMapper;
 import pams.repository.model.ClsUdRptdata;
+import pams.repository.model.userdefrpt.UdRptFeedbackData;
 import pams.repository.model.userdefrpt.UserDefRptVO;
 
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Map;
  * User: zhanrui
  * Date: 2013-01-24
  */
-public class UserDefRptLazyDataModel extends LazyDataModel<ClsUdRptdata> {
+public class UserDefRptLazyDataModel extends LazyDataModel<UdRptFeedbackData> {
     private static final Logger logger = LoggerFactory.getLogger(UserDefRptLazyDataModel.class);
 
     private UserDefRptVO paramBean;
@@ -28,8 +29,8 @@ public class UserDefRptLazyDataModel extends LazyDataModel<ClsUdRptdata> {
     }
 
     @Override
-    public List<ClsUdRptdata> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
-        List<ClsUdRptdata> dataList;
+    public List<UdRptFeedbackData> load(int first, int pageSize, String sortField, SortOrder sortOrder, Map<String, String> filters) {
+        List<UdRptFeedbackData> dataList;
         try {
             UserDefRptVO vo = new UserDefRptVO();
             PropertyUtils.copyProperties(vo, paramBean);
@@ -44,7 +45,6 @@ public class UserDefRptLazyDataModel extends LazyDataModel<ClsUdRptdata> {
                 }
             }else{ //Ä¬ÈÏÅÅÐò×Ö¶Î
                 vo.setSortField("BRANCHID");
-//                vo.setSortField("1");
             }
             dataList = this.dbMapper.selectPagedRecords(vo);
         } catch (Exception e) {
