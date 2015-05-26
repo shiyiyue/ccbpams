@@ -7,7 +7,7 @@ import pams.repository.model.ClsUdRptdata;
  * Date: 14-4-24
  * Time: обнГ1:41
  */
-public class UserDefRptVO extends ClsUdRptdata{
+public class UserDefRptVO extends UdRptFeedbackData{
     private String startImpdate;
     private String endImpdate;
 

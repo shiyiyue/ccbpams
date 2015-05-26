@@ -91,19 +91,6 @@
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
-<!--
-    <listener>
-        <listener-class>
-            org.springframework.web.context.request.RequestContextListener
-        </listener-class>
-    </listener>
--->
-
-    <servlet>
-        <servlet-name>SchedulerManager</servlet-name>
-        <servlet-class>pub.platform.advance.utils.SchedulerManager</servlet-class>
-        <load-on-startup>-1</load-on-startup>
-    </servlet>
 
     <servlet>
         <servlet-name>ImgServlet</servlet-name>
@@ -131,10 +118,7 @@
         <servlet-name>ImgServlet</servlet-name>
         <url-pattern>/signjpg</url-pattern>
     </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>SchedulerManager</servlet-name>
-        <url-pattern>/SchedulerManager</url-pattern>
-    </servlet-mapping>
+
 
     <!-- Action Servlet Mapping -->
     <servlet-mapping>

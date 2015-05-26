@@ -28,26 +28,46 @@
                 <div id="header">
                     <p:panel header="#{userDefRptShowAction.title}">
                         <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
-                            <h:panelGrid columns="2" cellspacing="1">
-                                <h:outputLabel value="分支机构:"/>
-                                <p:selectOneMenu id="branchname" style="width:180px;"
-                                                 value="#{userDefRptShowAction.paramBean.branchid}">
-                                    <f:selectItems value="#{userDefRptShowAction.branchList}"/>
-                                </p:selectOneMenu>
-                                <!--<h:outputText value="Basic: " />-->
-                                <!--<p:selectBooleanCheckbox value="#{userDefRptShowAction.isBizBranch}" />-->
-                                <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld01')}:"/>
-                                <p:inputText value="#{userDefRptShowAction.paramBean.fld01}"/>
-                                <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld02')}:"/>
-                                <p:inputText value="#{userDefRptShowAction.paramBean.fld02}"/>
-                                <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld03')}:"/>
-                                <p:inputText value="#{userDefRptShowAction.paramBean.fld03}"/>
-                                <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld04')}:"/>
-                                <p:inputText value="#{userDefRptShowAction.paramBean.fld04}"/>
-                                <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld05')}:"
-                                               rendered="#{userDefRptShowAction.fieldsMap.get('fld05') != null}"/>
-                                <p:inputText value="#{userDefRptShowAction.paramBean.fld05}"
-                                             rendered="#{userDefRptShowAction.fieldsMap.get('fld05') != null}"/>
+                            <h:panelGrid columns="1" cellspacing="1">
+                                <h:panelGrid columns="2">
+                                    <h:outputLabel value="分支机构:"/>
+                                    <p:selectOneMenu id="branchname" style="width:180px;"
+                                                     value="#{userDefRptShowAction.paramBean.branchid}">
+                                        <f:selectItems value="#{userDefRptShowAction.branchList}"/>
+                                    </p:selectOneMenu>
+                                </h:panelGrid>
+                                <h:panelGrid columns="2">
+                                    <h:outputLabel value="是否已做过营销:"/>
+                                    <p:selectOneRadio value="#{userDefRptShowAction.paramBean.ismarketed}">
+                                        <f:selectItem itemLabel="全部" itemValue=""/>
+                                        <f:selectItem itemLabel="已营销" itemValue="1"/>
+                                        <f:selectItem itemLabel="未营销" itemValue="0"/>
+                                    </p:selectOneRadio>
+                                    <h:outputLabel value="客户是否已拒绝:"/>
+                                    <p:selectOneRadio value="#{userDefRptShowAction.paramBean.isrefused}">
+                                        <f:selectItem itemLabel="全部" itemValue=""/>
+                                        <f:selectItem itemLabel="已拒绝" itemValue="1"/>
+                                        <f:selectItem itemLabel="未拒绝" itemValue="0"/>
+                                    </p:selectOneRadio>
+                                </h:panelGrid>
+                                <h:panelGrid columns="4" cellspacing="1">
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld01')}:"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld01}"/>
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld02')}:"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld02}"/>
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld03')}:"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld03}"/>
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld04')}:"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld04}"/>
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld05')}:"
+                                                   rendered="#{userDefRptShowAction.fieldsMap.get('fld05') != null}"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld05}"
+                                                 rendered="#{userDefRptShowAction.fieldsMap.get('fld05') != null}"/>
+                                    <h:outputLabel value="#{userDefRptShowAction.fieldsMap.get('fld06')}:"
+                                                   rendered="#{userDefRptShowAction.fieldsMap.get('fld06') != null}"/>
+                                    <p:inputText value="#{userDefRptShowAction.paramBean.fld06}"
+                                                 rendered="#{userDefRptShowAction.fieldsMap.get('fld06') != null}"/>
+                                </h:panelGrid>
                             </h:panelGrid>
                             <h:panelGrid>
                                 <p:commandButton id="qrybtn" style="width:90px;" value="查询"
@@ -99,13 +119,13 @@
                         </f:facet>
                         <h:outputText value="#{userDefRptShowAction.banksMap[record.branchid]}"/>
                     </p:column>
-                    <p:column>
+                    <p:column style="text-align:center">
                         <f:facet name="header">
                             营销过
                         </f:facet>
                         <h:outputText value="#{record.ismarketed == null? '': (record.ismarketed == '1'?'是':'否')}"/>
                     </p:column>
-                    <p:column>
+                    <p:column style="text-align:center">
                         <f:facet name="header">
                             客户拒绝
                         </f:facet>
@@ -128,48 +148,85 @@
                         </f:facet>
                         <h:outputText value="#{record.impdate}"/>
                     </p:column>
-
-                    <f:facet name="footer">
-                        <p:commandButton process="pdt" update=":form:singleFeedbackPanel"
-                                         icon="ui-icon-search" value="View"
-                                         oncomplete="singleFeedbackDialog.show()"/>
-                    </f:facet>
                 </p:dataTable>
+                <p:panel style="margin-top: 3px">
+                    <p:commandButton process="pdt" update=":form:multiFeedbackPanel"
+                                     icon="ui-icon-disk" value="营销反馈结果批量处理"
+                                     oncomplete="multiFeedbackDialog.show()"/>
 
+                </p:panel>
                 <p:dialog header="营销反馈处理" widgetVar="singleFeedbackDialog"
                           modal="true" showEffect="fade" hideEffect="fade" resizable="false" width="800">
                     <p:outputPanel id="singleFeedbackPanel">
-                        <p:fieldset>
-                            <p:outputPanel style="text-align:left;">
-                                <p:dataGrid columns="2" cellspacing="3"
-                                            paginator="true" paginatorPosition="bottom" paginatorTemplate="{PageLinks}"
-                                            rowsPerPageTemplate="10"
-                                            value="#{userDefRptShowAction.columns}" var="rec">
-                                    <h:outputText value="#{rec.header}" style="font-weight: bold"/>
-                                    <h:outputText value=":[#{userDefRptShowAction.selectedRecord[rec.property]}]"/>
-                                </p:dataGrid>
-                            </p:outputPanel>
-                        </p:fieldset>
-                        <p:fieldset style="margin-top: 10px;margin-bottom: 20px">
-                            <p:outputPanel>
-                                <h:panelGrid columns="5" cellspacing="10">
-                                    <p:commandButton value="已营销且客户已接受" style="margin-left: 10px"
-                                                     actionListener="#{userDefRptShowAction.onSingleFeedback('1','0')}"
-                                                     oncomplete="singleFeedbackDialog.hide()"
-                                                     update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
-                                    <p:commandButton value="已营销但客户已拒绝"
-                                                     actionListener="#{userDefRptShowAction.onSingleFeedback('1','1')}"
-                                                     oncomplete="singleFeedbackDialog.hide()"
-                                                     update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
-                                    <p:commandButton value="重置为未营销"
-                                                     actionListener="#{userDefRptShowAction.onSingleFeedback('','')}"
-                                                     oncomplete="singleFeedbackDialog.hide()"
-                                                     update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
-                                    <p:commandButton value="关闭窗口"
-                                                     onclick="singleFeedbackDialog.hide()" icon="ui-icon-disk"/>
-                                </h:panelGrid>
-                            </p:outputPanel>
-                        </p:fieldset>
+                        <p:outputPanel style="text-align:left; margin-top: 30px">
+                            <p:dataGrid columns="2" cellspacing="3"
+                                        paginator="true" paginatorPosition="bottom" paginatorTemplate="{PageLinks}"
+                                        rowsPerPageTemplate="10"
+                                        value="#{userDefRptShowAction.columns}" var="rec">
+                                <h:outputText value="#{rec.header}" style="font-weight: bold"/>
+                                <h:outputText value=":[#{userDefRptShowAction.selectedRecord[rec.property]}]"/>
+                            </p:dataGrid>
+                        </p:outputPanel>
+                        <p:panel style="margin-top: 10px;margin-bottom: 10px;text-align:center">
+                            <h:panelGrid columns="5" cellpadding="5">
+                                <p:commandButton value="已营销且客户已接受"
+                                                 actionListener="#{userDefRptShowAction.onSingleFeedback('1','0')}"
+                                                 oncomplete="singleFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
+                                <p:commandButton value="已营销但客户已拒绝"
+                                                 actionListener="#{userDefRptShowAction.onSingleFeedback('1','1')}"
+                                                 oncomplete="singleFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
+                                <p:commandButton value="重置为未营销"
+                                                 actionListener="#{userDefRptShowAction.onSingleFeedback('','')}"
+                                                 oncomplete="singleFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-cancel"/>
+                                <p:commandButton value="  关闭窗口  "
+                                                 onclick="singleFeedbackDialog.hide()" icon="ui-icon-close"/>
+                            </h:panelGrid>
+                        </p:panel>
+                    </p:outputPanel>
+                </p:dialog>
+
+                <p:dialog header="批量营销反馈处理" widgetVar="multiFeedbackDialog"
+                          modal="true" showEffect="fade" hideEffect="fade" resizable="false" width="800">
+                    <p:outputPanel id="multiFeedbackPanel">
+                        <p:outputPanel style="text-align:left; margin-top: 30px">
+                            <p:dataTable id="pdt2"
+                                         value="#{userDefRptShowAction.selectedRecords}" var="record"
+                                         paginatorTemplate="{CurrentPageReport} {PageLinks} "
+                                         currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
+                                         paginator="true" rows="10"
+                                         paginatorPosition="bottom"
+                                         emptyMessage="...">
+                                <p:columns value="#{userDefRptShowAction.dialogColumns}"
+                                           var="column"
+                                           columnIndexVar="colIndex">
+                                    <f:facet name="header">
+                                        <h:outputLabel value=" #{column.header}"/>
+                                    </f:facet>
+                                    <h:outputText value="#{record[column.property]}"/>
+                                </p:columns>
+                            </p:dataTable>
+                        </p:outputPanel>
+                        <p:panel style="margin-top: 10px;margin-bottom: 10px;text-align:center">
+                            <h:panelGrid columns="5" cellpadding="5">
+                                <p:commandButton value="已营销且客户已接受"
+                                                 actionListener="#{userDefRptShowAction.onMultiFeedback('1','0')}"
+                                                 oncomplete="multiFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
+                                <p:commandButton value="已营销但客户已拒绝"
+                                                 actionListener="#{userDefRptShowAction.onMultiFeedback('1','1')}"
+                                                 oncomplete="multiFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-disk"/>
+                                <p:commandButton value="重置为未营销"
+                                                 actionListener="#{userDefRptShowAction.onMultiFeedback('','')}"
+                                                 oncomplete="multiFeedbackDialog.hide()"
+                                                 update=":form:pdt :form:msgs" icon="ui-icon-cancel"/>
+                                <p:commandButton value="  关闭窗口  "
+                                                 onclick="multiFeedbackDialog.hide()" icon="ui-icon-close"/>
+                            </h:panelGrid>
+                        </p:panel>
                     </p:outputPanel>
                 </p:dialog>
             </h:form>

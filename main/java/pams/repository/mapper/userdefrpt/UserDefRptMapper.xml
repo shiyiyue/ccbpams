@@ -13,10 +13,16 @@
                 <![CDATA[ and a.RPTNO = #{rptno} ]]>
             </if>
             <if test=" startImpdate != null and startImpdate != '' ">
-                <![CDATA[ and a.IMPDATE >= #{startImpdate} ]]>
+                <![CDATA[ and b.IMPDATE >= #{startImpdate} ]]>
             </if>
             <if test=" endImpdate != null and endImpdate != '' ">
-                <![CDATA[ and a.IMPDATE <= #{endImpdate} ]]>
+                <![CDATA[ and b.IMPDATE <= #{endImpdate} ]]>
+            </if>
+            <if test=" ismarketed != null and ismarketed != '' ">
+                <![CDATA[ and b.ISMARKETED = #{ismarketed}]]>
+            </if>
+            <if test=" isrefused != null and isrefused != '' ">
+                <![CDATA[ and b.ISREFUSED = #{isrefused}  ]]>
             </if>
             <if test=" fld01 != null and fld01 != '' ">
                 <![CDATA[ and a.FLD01 like  '%${fld01}%' ]]>

@@ -56,6 +56,7 @@ public class UserDefRptShowAction implements Serializable {
     private LazyDataModel<UdRptFeedbackData> lazyDataModel;
     private List<SelectItem> branchList;
     private List<ColumnModel> columns = new ArrayList<ColumnModel>();
+    private List<ColumnModel> dialogColumns = new ArrayList<ColumnModel>();
 
     private DataTable dataTable;
 
@@ -121,8 +122,13 @@ public class UserDefRptShowAction implements Serializable {
         //动态生成dtatable column
         columns.add(new ColumnModel("机构号", "branchid"));
         List<ClsUdFldinfo> fldinfos = userDefRptService.selectColumnsDefine(rpttype, rptno);
+        int columnCnt = 0;
         for (ClsUdFldinfo fldinfo : fldinfos) {
             columns.add(new ColumnModel(fldinfo.getFldname(), "fld" + fldinfo.getFldsn()));
+            columnCnt++;
+            if (columnCnt <= 6) {
+                dialogColumns.add(new ColumnModel(fldinfo.getFldname(), "fld" + fldinfo.getFldsn()));
+            }
             fieldsMap.put("fld" + fldinfo.getFldsn(), fldinfo.getFldname());
         }
 
@@ -335,7 +341,16 @@ public class UserDefRptShowAction implements Serializable {
         return selectedRecords;
     }
 
+    public List<ColumnModel> getDialogColumns() {
+        return dialogColumns;
+    }
+
+    public void setDialogColumns(List<ColumnModel> dialogColumns) {
+        this.dialogColumns = dialogColumns;
+    }
+
     public void setSelectedRecords(List<UdRptFeedbackData> selectedRecords) {
         this.selectedRecords = selectedRecords;
+
     }
 }

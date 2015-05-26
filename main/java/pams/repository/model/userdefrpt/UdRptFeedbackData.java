@@ -13,15 +13,6 @@ public class UdRptFeedbackData extends ClsUdRptdata {
     private String refusedate;
     private String refuseoper;
     private String remark;
-    private boolean marketedFlag;
-
-    public boolean isMarketedFlag() {
-        return marketedFlag;
-    }
-
-    public void setMarketedFlag(boolean marketedFlag) {
-        this.marketedFlag = marketedFlag;
-    }
 
     public String getIsmarketed() {
         return ismarketed;
