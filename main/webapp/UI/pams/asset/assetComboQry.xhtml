@@ -1,0 +1,217 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                template="/templates/ui.xhtml">
+
+    <ui:define name="head">
+        <style type="text/css">
+            .col-95 {
+                width: 95%;
+            }
+
+            .col-5 {
+                width: 5%;
+            }
+
+        </style>
+
+    </ui:define>
+
+    <ui:define name="content">
+        <div style="margin:5px;">
+            <h:form id="form">
+                <p:tabView id="tabView" style="font-weight:normal;font-style:normal">
+                    <p:tab id="tab" title="客户基本信息查询">
+                        <p:growl id="msgs" showDetail="false" life="3000"/>
+
+                        <div id="header">
+                            <p:panel>
+                                <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
+                                    <h:panelGrid columns="1" cellspacing="0">
+                                        <h:panelGrid columns="2" cellspacing="1">
+                                            <h:outputLabel value="分支机构:"/>
+                                            <p:selectOneMenu id="branchname"
+                                                             value="#{assetQryAction.paramBean.instNo}">
+                                                <f:selectItems value="#{assetQryAction.branchList}"/>
+                                            </p:selectOneMenu>
+                                        </h:panelGrid>
+                                        <h:panelGrid columns="4" cellspacing="1">
+                                            <h:outputLabel value="客户姓名:"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.custName}"/>
+                                            <h:outputLabel value=""/>
+                                            <h:outputLabel value=""/>
+                                            <h:outputLabel value="存款余额:"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.depStartAmt}"/>
+                                            <h:outputLabel value="-"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.depEndAmt}"/>
+                                            <h:outputLabel value="基金余额:"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.fundStartAmt}"/>
+                                            <h:outputLabel value="-"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.fundEndAmt}"/>
+                                            <h:outputLabel value="理财余额:"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.finStartAmt}"/>
+                                            <h:outputLabel value="-"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.finEndAmt}"/>
+                                        </h:panelGrid>
+                                    </h:panelGrid>
+                                    <h:panelGrid>
+                                        <p:commandButton id="qrybtn" style="width:90px;" value="查询"
+                                                         action="#{assetQryAction.onBaseQuery}"
+                                                         update="pdt,msgs">
+                                        </p:commandButton>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </p:panel>
+                        </div>
+
+                        <p:ajaxStatus style="height:20px;text-align:center">
+                            <f:facet name="start">
+                                <h:graphicImage value="/images/ajaxloadingbar.gif"/>
+                            </f:facet>
+                            <f:facet name="complete">
+                                <h:outputText value=""/>
+                            </f:facet>
+                        </p:ajaxStatus>
+
+                        <p:dataTable id="pdt" style="width:100%;"
+                                     lazy="true"
+                                     value="#{assetQryAction.lazyDataModel}" var="record"
+                                     selectionMode="single" selection="#{assetQryAction.selectedRecord}"
+                                     rowKey="#{record.custNo}"
+                                     editable="true" editMode="cell"
+                                     paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown} "
+                                     currentPageReportTemplate="{startRecord}-{endRecord} 共{totalRecords}笔"
+                                     paginator="true" rows="15"
+                                     paginatorPosition="bottom"
+                                     rowsPerPageTemplate="500,100,50,30,15"
+                                     emptyMessage="数据记录为空...">
+
+                            <p:ajax event="rowSelect" listener="#{assetQryAction.onCustRowSelect}"
+                                    update=":form:tabView:msgs"/>
+                            <p:ajax event="rowUnselect" listener="#{assetQryAction.onCustRowUnSelect}"
+                                    update=":form:tabView:msgs "/>
+
+                            <p:column style="text-align:center" headerText="客户名称">
+                                <h:outputText value="#{record.custName}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="客户编号">
+                                <h:outputText value="#{record.custNo}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="证件号">
+                                <h:outputText value="#{record.certNo}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="存款余额">
+                                <h:outputText value="#{record.depTotal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="基金余额">
+                                <h:outputText value="#{record.currAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财余额">
+                                <h:outputText value="#{record.finSumbal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="账户数">
+                                <h:outputText value="#{record.acctCount}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="活期开户数">
+                                <h:outputText value="#{record.hqCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="定期开户数">
+                                <h:outputText value="#{record.dqCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="活期当前余额累计">
+                                <h:outputText value="#{record.hqCurrBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="定期当前余额累计">
+                                <h:outputText value="#{record.dqCurrBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="个人存款合计">
+                                <h:outputText value="#{record.depTotal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡数">
+                                <h:outputText value="#{record.crdCrtCount}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡激活数">
+                                <h:outputText value="#{record.crdActiv}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡未激活数">
+                                <h:outputText value="#{record.crdNoActiv}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="个人贷款开户数">
+                                <h:outputText value="#{record.lnCustCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款金额">
+                                <h:outputText value="#{record.loanAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款期限">
+                                <h:outputText value="#{record.loanDate}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款余额">
+                                <h:outputText value="#{record.loanBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财产品数">
+                                <h:outputText value="#{record.productCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财当前本金">
+                                <h:outputText value="#{record.currAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财当前份额">
+                                <h:outputText value="#{record.fRealshares}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="基金数量">
+                                <h:outputText value="#{record.fundCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="基金成本">
+                                <h:outputText value="#{record.fundCost}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保证金余额">
+                                <h:outputText value="#{record.ctsSumbal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="电子渠道">
+                                <h:outputText value="#{record.ectipTyp}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="开通渠道">
+                                <h:outputText value="#{record.chnNo}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财卡总数">
+                                <h:outputText value="#{record.finTotal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="金卡">
+                                <h:outputText value="#{record.crdJk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="白金卡">
+                                <h:outputText value="#{record.crdBjk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="财私卡">
+                                <h:outputText value="#{record.crdCsk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财卡余额">
+                                <h:outputText value="#{record.finSumbal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保单数">
+                                <h:outputText value="#{record.insuCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保单金额">
+                                <h:outputText value="#{record.insuAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="纸黄金总量">
+                                <h:outputText value="#{record.securSum}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="实物黄金交易重量">
+                                <h:outputText value="#{record.weight}"/>
+                            </p:column>
+
+                            <p:column style="text-align:center" headerText="联系电话">
+                                <h:outputText value="#{record.tel}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:tab>
+                </p:tabView>
+            </h:form>
+        </div>
+
+    </ui:define>
+</ui:composition>
