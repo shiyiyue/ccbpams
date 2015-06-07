@@ -6,7 +6,7 @@
                       http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
 
     <session-config>
-        <session-timeout>360</session-timeout>
+        <session-timeout>600</session-timeout>
     </session-config>
 
     <!--FileUpload-->

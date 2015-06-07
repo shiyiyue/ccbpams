@@ -50,16 +50,18 @@
 <html>
 <head>
     <title>精准营销数据仓库系统</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=5" />
+    <meta http-equiv="X-UA-Compatible" content="IE=5"/>
 
     <script src="../../dhtmlx/dhtmlxTabbar/codebase/dhtmlxcommon.js" type="text/javascript"></script>
     <script src="../../dhtmlx/dhtmlxTabbar/codebase/dhtmlxcontainer.js" type="text/javascript"></script>
 
     <link rel="stylesheet" type="text/css" href="../../dhtmlx/dhtmlxLayout/codebase/dhtmlxlayout.css"/>
-    <link rel="stylesheet" type="text/css" href="../../dhtmlx/dhtmlxLayout/codebase/skins/dhtmlxlayout_dhx_skyblue.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="../../dhtmlx/dhtmlxLayout/codebase/skins/dhtmlxlayout_dhx_skyblue.css"/>
     <script src="../../dhtmlx/dhtmlxLayout/codebase/dhtmlxlayout.js" type="text/javascript"></script>
 
-    <link rel="stylesheet" type="text/css" href="../../dhtmlx/dhtmlxAccordion/codebase/skins/dhtmlxaccordion_dhx_skyblue.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="../../dhtmlx/dhtmlxAccordion/codebase/skins/dhtmlxaccordion_dhx_skyblue.css"/>
     <script src="../../dhtmlx/dhtmlxAccordion/codebase/dhtmlxaccordion.js" type="text/javascript"></script>
 
     <link rel="stylesheet" type="text/css" href="../../dhtmlx/dhtmlxTree/codebase/dhtmlxtree.css"/>
@@ -105,6 +107,7 @@
             background-image: url(../../images/top_right.jpg)
         }
     </style>
+
     <script type="text/javascript">
         var contextPath = '<%=contextPath%>';
         var defaultMenuStr = '<%=jsonDefaultMenu%>';
@@ -117,7 +120,6 @@
             tabbarhide("bizlayout");
             document.getElementById("biz").setAttribute("active", "true");
             document.getElementById("biz").className = "tabs-item-active";
-
         }
 
         function Relogin() {
@@ -128,6 +130,7 @@
 </head>
 
 <body onload="doOnLoad()" onResize="doOnResize();">
+
 <%--关闭tab时返回上一个浏览的tab--%>
 <input type="hidden" id="lasttabdivid">
 

@@ -1,1 +1,19 @@
-aaa #{name}
+<?xml version="1.0" encoding="utf-8" ?>
+<statements>
+    <statement id="sel_login_user_001">
+        <![CDATA[
+        SELECT id, email, login_name  
+        FROM login_user 
+        WHERE 1=1 
+ 
+        <#if loginName??> 
+        AND login_name=:loginName 
+        </#if> 
+        <#if email??> 
+        AND email=:email 
+        </#if> 
+ 
+        ORDER BY id 
+        ]]>
+    </statement>
+</statements>

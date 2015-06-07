@@ -85,6 +85,9 @@ public class OperatorManager implements Serializable {
 
     private String safySign = "";
 
+    private String clientInfo = "";
+    private String userAgent = "";
+
     public OperatorManager() {
 
         // //创建图片标示
@@ -150,7 +153,7 @@ public class OperatorManager implements Serializable {
             if (StringUtils.isNotEmpty(development) && "1".equals(development)) {
                 loginWhere = "where operid='" + operid + "' and operenabled='1'";
                 System.out.println("已进入开发模式...");
-            }else{
+            } else {
                 loginWhere = "where operid='" + operid
                         + "' and operpasswd ='" + MD5Helper.getMD5String(password) + "'and operenabled='1'";
             }
@@ -165,7 +168,7 @@ public class OperatorManager implements Serializable {
             }
 
             String sss = "登录时间 :" + loginTime + " IP: " + remoteAddr
-                    + " 机器名称 : " + remoteHost;
+                    + " 机器名称 : " + remoteHost + " ClientInfo : " + clientInfo;
 
             operator.setFillstr600(sss);
 
@@ -214,6 +217,13 @@ public class OperatorManager implements Serializable {
     }
 
     private void saveLoginSuccessLog() {
+        if (StringUtils.isBlank(userAgent)) {
+            userAgent = "";
+        } else {
+            if (userAgent.length() > 40) {
+                userAgent = userAgent.substring(0, 40);
+            }
+        }
         String sSql = "insert into ptoplog" +
                 "  (guid," +
                 "   action_id," +
@@ -234,7 +244,7 @@ public class OperatorManager implements Serializable {
                 "  '" + operator.getPtDeptBean().getDeptname() + "'," +
                 "   sysdate," +
                 "  '" + remoteAddr + "'," +
-                "  '登录系统成功')";
+                "  '" + clientInfo  + "-" + userAgent + "')";
 
         ConnectionManager cm = ConnectionManager.getInstance();
         DatabaseConnection dc = cm.get();
@@ -447,5 +457,21 @@ public class OperatorManager implements Serializable {
 
     public String getLoginTime() {
         return loginTime;
+    }
+
+    public String getClientInfo() {
+        return clientInfo;
+    }
+
+    public void setClientInfo(String clientInfo) {
+        this.clientInfo = clientInfo;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 }

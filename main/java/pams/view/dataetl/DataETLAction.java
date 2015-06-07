@@ -32,7 +32,7 @@ public class DataETLAction implements Serializable {
 
     private String startdate;
     private String startdateRpt11;
-    private String startdateRpt15=""; //电子银行部新签约客户签约当日的交易笔数报表的最后导入日期
+    private String startdateRpt15 = ""; //电子银行部新签约客户签约当日的交易笔数报表的最后导入日期
     private String enddate;
     private String enddateRpt11;
     private String largeStartdate;
@@ -98,6 +98,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA08V1Data() {
         try {
             dataETLService.importData_RptA08V1(currYearStartdate);
@@ -108,6 +109,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA11V1Data() {
         try {
             dataETLService.importData_RptA11V1(startdateRpt11, enddateRpt11);
@@ -118,6 +120,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onDeleteRptA11V1Data() {
         try {
             dataETLService.deleteData_RptA11V1(startdateRpt11, enddateRpt11);
@@ -128,6 +131,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA12V1Data() {
         try {
             dataETLService.importData_RptA12V1();
@@ -138,6 +142,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA13V1Data() {
         try {
             dataETLService.importData_RptA13V1();
@@ -148,6 +153,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA14V1Data() {
         try {
             dataETLService.importData_RptA14V1(currYearStartdate);
@@ -158,6 +164,7 @@ public class DataETLAction implements Serializable {
         }
         return null;
     }
+
     public String onProcessRptA15V1Data() {
         try {
             dataETLService.importData_RptA15V1(startdateRpt15);
@@ -169,6 +176,29 @@ public class DataETLAction implements Serializable {
         return null;
     }
 
+    public String onProcessAssetData() {
+        try {
+            dataETLService.importData_AssetData(startdate);
+            MessageUtil.addInfo("数据处理完成...");
+        } catch (Exception ex) {
+            logger.error("数据处理错误。", ex);
+            MessageUtil.addError("数据处理错误。" + ex.getMessage());
+        }
+        return null;
+    }
+
+    public String onProcessCapitalFlow() {
+        try {
+            dataETLService.importData_CapitalFlow(startdate);
+            MessageUtil.addInfo("数据处理完成...");
+        } catch (Exception ex) {
+            logger.error("数据处理错误。", ex);
+            MessageUtil.addError("数据处理错误。" + ex.getMessage());
+        }
+        return null;
+    }
+
+    //--------------------------
     private String checkAndTransInputDate() {
         Date date = null;
         try {

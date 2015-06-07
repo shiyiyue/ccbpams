@@ -5,27 +5,215 @@
     <sql id="QueryCustinfo_Where_Clause">
       <where>
           a.INST_NO in (select deptid from ptdept start with deptid = #{instNo}  connect by prior deptid = parentdeptid)
+
+          <!-- 基本信息 -->
           <if test = " custName != null and custName != '' ">
               <![CDATA[ and a.CUST_NAME like '%'||#{custName}||'%' ]]>
           </if>
-          <if test = " depStartAmt != null and depStartAmt != 0 ">
-              <![CDATA[ and a.DEP_TOTAL >= #{depStartAmt} ]]>
+          <if test = " custNo != null and custNo != '' ">
+              <![CDATA[ and a.CUST_NO like '%'||#{custNo}||'%' ]]>
           </if>
-          <if test = " depEndAmt != null and depEndAmt != 0 ">
-              <![CDATA[ and a.DEP_TOTAL <= #{depEndAmt}  ]]>
+          <if test = " certNo != null and certNo != '' ">
+              <![CDATA[ and a.CERT_NO like '%'||#{certNo}||'%' ]]>
           </if>
-          <if test = " fundStartAmt != null and fundStartAmt != 0 ">
-              <![CDATA[ and a.CURR_AMT >= #{fundStartAmt} ]]>
+          <if test = " tel != null and tel != '' ">
+              <![CDATA[ and a.TEL like '%'||#{tel}||'%' ]]>
           </if>
-          <if test = " fundEndAmt != null and fundEndAmt != 0 ">
-              <![CDATA[ and a.CURR_AMT <= #{fundEndAmt}  ]]>
+
+          <!-- 存款信息 -->
+          <if test = " acctCount1 != null and acctCount1 != 0 ">
+              <![CDATA[ and a.ACCT_COUNT >= #{acctCount1} ]]>
           </if>
-          <if test = " finStartAmt != null and finStartAmt != 0 ">
-              <![CDATA[ and a.FIN_TOTAL >= #{finStartAmt} ]]>
+          <if test = " acctCount2 != null and acctCount2 != 0 ">
+              <![CDATA[ and a.ACCT_COUNT <= #{acctCount2} ]]>
           </if>
-          <if test = " finEndAmt != null and finEndAmt != 0 ">
-              <![CDATA[ and a.FIN_TOTAL <= #{finEndAmt}  ]]>
+          <if test = " hqCnt1 != null and hqCnt1 != 0 ">
+              <![CDATA[ and a.HQ_CNT >= #{hqCnt1} ]]>
           </if>
+          <if test = " hqCnt2 != null and hqCnt2 != 0 ">
+              <![CDATA[ and a.HQ_CNT <= #{hqCnt2} ]]>
+          </if>
+          <if test = " dqCnt1 != null and dqCnt1 != 0 ">
+              <![CDATA[ and a.DQ_CNT >= #{dqCnt1} ]]>
+          </if>
+          <if test = " dqCnt2 != null and dqCnt2 != 0 ">
+              <![CDATA[ and a.DQ_CNT <= #{dqCnt2} ]]>
+          </if>
+          <if test = " hqCurrBal1 != null and hqCurrBal1 != 0 ">
+              <![CDATA[ and a.HQ_CURR_BAL >= #{hqCurrBal1} ]]>
+          </if>
+          <if test = " hqCurrBal2 != null and hqCurrBal2 != 0 ">
+              <![CDATA[ and a.HQ_CURR_BAL <= #{hqCurrBal2} ]]>
+          </if>
+          <if test = " dqCurrBal1 != null and dqCurrBal1 != 0 ">
+              <![CDATA[ and a.DQ_CURR_BAL >= #{dqCurrBal1} ]]>
+          </if>
+          <if test = " dqCurrBal2 != null and dqCurrBal2 != 0 ">
+              <![CDATA[ and a.DQ_CURR_BAL <= #{dqCurrBal2} ]]>
+          </if>
+          <if test = " depTotal1 != null and depTotal1 != 0 ">
+              <![CDATA[ and a.DEP_TOTAL >= #{depTotal1} ]]>
+          </if>
+          <if test = " depTotal2 != null and depTotal2 != 0 ">
+              <![CDATA[ and a.DEP_TOTAL <= #{depTotal2}  ]]>
+          </if>
+
+
+          <!-- 贷款信息 -->
+          <if test = " lnCustCnt1 != null and lnCustCnt1 != 0 ">
+              <![CDATA[ and a.LN_CUST_CNT >= #{lnCustCnt1} ]]>
+          </if>
+          <if test = " lnCustCnt2 != null and lnCustCnt2 != 0 ">
+              <![CDATA[ and a.LN_CUST_CNT <= #{lnCustCnt2} ]]>
+          </if>
+          <if test = " loanAmt1 != null and loanAmt1 != 0 ">
+              <![CDATA[ and a.LOAN_AMT >= #{loanAmt1} ]]>
+          </if>
+          <if test = " loanAmt2 != null and loanAmt2 != 0 ">
+              <![CDATA[ and a.LOAN_AMT <= #{loanAmt2} ]]>
+          </if>
+          <if test = " loanDate1 != null and loanDate1 != 0 ">
+              <![CDATA[ and a.LOAN_DATE >= #{loanDate1} ]]>
+          </if>
+          <if test = " loanDate2 != null and loanDate2 != 0 ">
+              <![CDATA[ and a.LOAN_DATE <= #{loanDate2} ]]>
+          </if>
+          <if test = " loanBal1 != null and loanBal1 != 0 ">
+              <![CDATA[ and a.LOAN_BAL >= #{loanBal1} ]]>
+          </if>
+          <if test = " loanBal2 != null and loanBal2 != 0 ">
+              <![CDATA[ and a.LOAN_BAL <= #{loanBal2} ]]>
+          </if>
+
+          <!-- 理财信息 -->
+          <if test = " productCnt1 != null and productCnt1 != 0 ">
+              <![CDATA[ and a.PRODUCT_CNT >= #{productCnt1} ]]>
+          </if>
+          <if test = " productCnt2 != null and productCnt2 != 0 ">
+              <![CDATA[ and a.PRODUCT_CNT <= #{productCnt2} ]]>
+          </if>
+          <if test = " fRealshares1 != null and fRealshares1 != 0 ">
+              <![CDATA[ and a.F_REALSHARES >= #{fRealshares1} ]]>
+          </if>
+          <if test = " fRealshares2 != null and fRealshares2 != 0 ">
+              <![CDATA[ and a.F_REALSHARES <= #{fRealshares2} ]]>
+          </if>
+          <if test = " currAmt1 != null and currAmt1 != 0 ">
+              <![CDATA[ and a.CURR_AMT >= #{currAmt1} ]]>
+          </if>
+          <if test = " currAmt2 != null and currAmt2 != 0 ">
+              <![CDATA[ and a.CURR_AMT <= #{currAmt2}  ]]>
+          </if>
+
+          <!-- 基金及CTS保证金 -->
+          <if test = " fundCnt1 != null and fundCnt1 != 0 ">
+              <![CDATA[ and a.FUND_CNT >= #{fundCnt1} ]]>
+          </if>
+          <if test = " fundCnt2 != null and fundCnt2 != 0 ">
+              <![CDATA[ and a.FUND_CNT <= #{fundCnt2} ]]>
+          </if>
+          <if test = " fundCost1 != null and fundCost1 != 0 ">
+              <![CDATA[ and a.FUND_COST >= #{fundCost1} ]]>
+          </if>
+          <if test = " fundCost2 != null and fundCost2 != 0 ">
+              <![CDATA[ and a.FUND_COST <= #{fundCost2} ]]>
+          </if>
+          <if test = " ctsSumbal1 != null and ctsSumbal1 != 0 ">
+              <![CDATA[ and a.CTS_SUMBAL >= #{ctsSumbal1} ]]>
+          </if>
+          <if test = " ctsSumbal2 != null and ctsSumbal2 != 0 ">
+              <![CDATA[ and a.CTS_SUMBAL <= #{ctsSumbal2} ]]>
+          </if>
+
+          <!-- 电子渠道 -->
+          <if test = " ectipTyp != null and ectipTyp != '' ">
+              <![CDATA[ and a.ECTIP_TYP like '%'||#{ectipTyp}||'%' ]]>
+          </if>
+          <if test = " chnNo != null and chnNo != '' ">
+              <![CDATA[ and a.CHN_NO like '%'||#{chnNo}||'%' ]]>
+          </if>
+
+          <!-- 贷记卡信息 -->
+          <if test = " crdCrtCount1 != null and crdCrtCount1 != 0 ">
+              <![CDATA[ and a.CRD_CRT_COUNT >= #{crdCrtCount1} ]]>
+          </if>
+          <if test = " crdCrtCount2 != null and crdCrtCount2 != 0 ">
+              <![CDATA[ and a.CRD_CRT_COUNT <= #{crdCrtCount2} ]]>
+          </if>
+          <if test = " crdActiv1 != null and crdActiv1 != 0 ">
+              <![CDATA[ and a.CRD_ACTIV >= #{crdActiv1} ]]>
+          </if>
+          <if test = " crdActiv2 != null and crdActiv2 != 0 ">
+              <![CDATA[ and a.CRD_ACTIV <= #{crdActiv2} ]]>
+          </if>
+          <if test = " crdNoActiv1 != null and crdNoActiv1 != 0 ">
+              <![CDATA[ and a.CRD_NO_ACTIV >= #{crdNoActiv1} ]]>
+          </if>
+          <if test = " crdNoActiv2 != null and crdNoActiv2 != 0 ">
+              <![CDATA[ and a.CRD_NO_ACTIV <= #{crdNoActiv2} ]]>
+          </if>
+
+          <!-- 理财卡信息 -->
+          <if test = " finTotal1 != null and finTotal1 != 0 ">
+              <![CDATA[ and a.FIN_TOTAL >= #{finTotal1} ]]>
+          </if>
+          <if test = " finTotal2 != null and finTotal2 != 0 ">
+              <![CDATA[ and a.FIN_TOTAL <= #{finTotal2} ]]>
+          </if>
+          <if test = " crdJk1 != null and crdJk1 != 0 ">
+              <![CDATA[ and a.CRD_JK >= #{crdJk1} ]]>
+          </if>
+          <if test = " crdJk2 != null and crdJk2 != 0 ">
+              <![CDATA[ and a.CRD_JK <= #{crdJk2} ]]>
+          </if>
+          <if test = " crdBjk1 != null and crdBjk1 != 0 ">
+              <![CDATA[ and a.CRD_BJK >= #{crdBjk1} ]]>
+          </if>
+          <if test = " crdBjk2 != null and crdBjk2 != 0 ">
+              <![CDATA[ and a.CRD_BJK <= #{crdBjk2} ]]>
+          </if>
+          <if test = " crdCsk1 != null and crdCsk1 != 0 ">
+              <![CDATA[ and a.CRD_CSK >= #{crdCsk1} ]]>
+          </if>
+          <if test = " crdCsk2 != null and crdCsk2 != 0 ">
+              <![CDATA[ and a.CRD_CSK <= #{crdCsk2} ]]>
+          </if>
+          <if test = " finSumbal1 != null and finSumbal1 != 0 ">
+              <![CDATA[ and a.FIN_SUMBAL >= #{finSumbal1} ]]>
+          </if>
+          <if test = " finSumbal2 != null and finSumbal2 != 0 ">
+              <![CDATA[ and a.FIN_SUMBAL <= #{finSumbal2} ]]>
+          </if>
+
+          <!-- 保单信息 -->
+          <if test = " insuCnt1 != null and insuCnt1 != 0 ">
+              <![CDATA[ and a.INSU_CNT >= #{insuCnt1} ]]>
+          </if>
+          <if test = " insuCnt2 != null and insuCnt2 != 0 ">
+              <![CDATA[ and a.INSU_CNT <= #{insuCnt2} ]]>
+          </if>
+          <if test = " insuAmt1 != null and insuAmt1 != 0 ">
+              <![CDATA[ and a.INSU_AMT >= #{insuAmt1} ]]>
+          </if>
+          <if test = " insuAmt2 != null and insuAmt2 != 0 ">
+              <![CDATA[ and a.INSU_AMT <= #{insuAmt2} ]]>
+          </if>
+
+          <!-- 贵金属信息 -->
+          <if test = " securSum1 != null and securSum1 != 0 ">
+              <![CDATA[ and a.SECUR_SUM >= #{securSum1} ]]>
+          </if>
+          <if test = " securSum2 != null and securSum2 != 0 ">
+              <![CDATA[ and a.SECUR_SUM <= #{securSum2} ]]>
+          </if>
+          <if test = " weight1 != null and weight1 != 0 ">
+              <![CDATA[ and a.WEIGHT >= #{weight1} ]]>
+          </if>
+          <if test = " weight2 != null and weight2 != 0 ">
+              <![CDATA[ and a.WEIGHT <= #{weight2} ]]>
+          </if>
+
+
       </where>
     </sql>
 

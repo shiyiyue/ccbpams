@@ -45,17 +45,17 @@
                                             <h:outputLabel value=""/>
                                             <h:outputLabel value=""/>
                                             <h:outputLabel value="存款余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.depStartAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.depTotal1}"/>
                                             <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.depEndAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.depTotal2}"/>
                                             <h:outputLabel value="基金余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.fundStartAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.fundCost1}"/>
                                             <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.fundEndAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.fundCost2}"/>
                                             <h:outputLabel value="理财余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.finStartAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.currAmt1}"/>
                                             <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.finEndAmt}"/>
+                                            <p:inputText value="#{assetQryAction.paramBean.currAmt2}"/>
                                         </h:panelGrid>
                                     </h:panelGrid>
                                     <h:panelGrid>
@@ -104,6 +104,7 @@
                             <p:column style="text-align:center" headerText="证件号">
                                 <h:outputText value="#{record.certNo}"/>
                             </p:column>
+<!--
                             <p:column style="text-align:center" headerText="存款余额">
                                 <h:outputText value="#{record.depTotal}"/>
                             </p:column>
@@ -113,10 +114,99 @@
                             <p:column style="text-align:center" headerText="理财余额">
                                 <h:outputText value="#{record.finSumbal}"/>
                             </p:column>
-                            <p:column style="text-align:center">
-                                <f:facet name="header">
-                                    联系电话
-                                </f:facet>
+-->
+                            <p:column style="text-align:center" headerText="账户数">
+                                <h:outputText value="#{record.acctCount}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="活期开户数">
+                                <h:outputText value="#{record.hqCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="定期开户数">
+                                <h:outputText value="#{record.dqCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="活期当前余额累计">
+                                <h:outputText value="#{record.hqCurrBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="定期当前余额累计">
+                                <h:outputText value="#{record.dqCurrBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="个人存款合计">
+                                <h:outputText value="#{record.depTotal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡数">
+                                <h:outputText value="#{record.crdCrtCount}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡激活数">
+                                <h:outputText value="#{record.crdActiv}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷记卡未激活数">
+                                <h:outputText value="#{record.crdNoActiv}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="个人贷款开户数">
+                                <h:outputText value="#{record.lnCustCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款金额">
+                                <h:outputText value="#{record.loanAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款期限">
+                                <h:outputText value="#{record.loanDate}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="贷款余额">
+                                <h:outputText value="#{record.loanBal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财产品数">
+                                <h:outputText value="#{record.productCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财当前本金">
+                                <h:outputText value="#{record.currAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财当前份额">
+                                <h:outputText value="#{record.fRealshares}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="基金数量">
+                                <h:outputText value="#{record.fundCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="基金成本">
+                                <h:outputText value="#{record.fundCost}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保证金余额">
+                                <h:outputText value="#{record.ctsSumbal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="电子渠道">
+                                <h:outputText value="#{record.ectipTyp}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="开通渠道">
+                                <h:outputText value="#{record.chnNo}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财卡总数">
+                                <h:outputText value="#{record.finTotal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="金卡">
+                                <h:outputText value="#{record.crdJk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="白金卡">
+                                <h:outputText value="#{record.crdBjk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="财私卡">
+                                <h:outputText value="#{record.crdCsk}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="理财卡余额">
+                                <h:outputText value="#{record.finSumbal}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保单数">
+                                <h:outputText value="#{record.insuCnt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="保单金额">
+                                <h:outputText value="#{record.insuAmt}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="纸黄金总量">
+                                <h:outputText value="#{record.securSum}"/>
+                            </p:column>
+                            <p:column style="text-align:center" headerText="实物黄金交易重量">
+                                <h:outputText value="#{record.weight}"/>
+                            </p:column>
+
+                            <p:column style="text-align:center" headerText="联系电话">
                                 <h:outputText value="#{record.tel}"/>
                             </p:column>
                         </p:dataTable>

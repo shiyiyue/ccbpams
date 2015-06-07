@@ -58,6 +58,8 @@
     boolean isLogin = false;
     om.setRemoteAddr(request.getRemoteAddr());
     om.setRemoteHost(request.getRemoteHost());
+    om.setClientInfo(request.getParameter("browserinfo"));
+    om.setUserAgent(request.getHeader("user-agent"));
     isLogin = om.login(username, password);
     if (!isLogin) {
         out.println("<script language=\"javascript\">alert ('输入用户名或密码有误！'); if(top){ top.location.href='" + path + "/pages/security/loginPage.jsp'; } else { location.href = '" + path + "/pages/security/loginPage.jsp';} </script>");

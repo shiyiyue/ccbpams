@@ -17,46 +17,191 @@
                 width: 5%;
             }
 
-        </style>
+            .topAligned td{
+                vertical-align: top;
+            }
 
+        </style>
     </ui:define>
 
     <ui:define name="content">
         <div style="margin:5px;">
             <h:form id="form">
                 <p:tabView id="tabView" style="font-weight:normal;font-style:normal">
-                    <p:tab id="tab" title="客户基本信息查询">
+                    <p:tab id="tab" title="客户信息综合查询">
                         <p:growl id="msgs" showDetail="false" life="3000"/>
 
                         <div id="header">
                             <p:panel>
-                                <h:panelGrid columns="2" cellspacing="5" columnClasses="col-95,col-5">
-                                    <h:panelGrid columns="1" cellspacing="0">
-                                        <h:panelGrid columns="2" cellspacing="1">
-                                            <h:outputLabel value="分支机构:"/>
-                                            <p:selectOneMenu id="branchname"
-                                                             value="#{assetQryAction.paramBean.instNo}">
-                                                <f:selectItems value="#{assetQryAction.branchList}"/>
-                                            </p:selectOneMenu>
-                                        </h:panelGrid>
-                                        <h:panelGrid columns="4" cellspacing="1">
-                                            <h:outputLabel value="客户姓名:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.custName}"/>
-                                            <h:outputLabel value=""/>
-                                            <h:outputLabel value=""/>
-                                            <h:outputLabel value="存款余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.depStartAmt}"/>
-                                            <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.depEndAmt}"/>
-                                            <h:outputLabel value="基金余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.fundStartAmt}"/>
-                                            <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.fundEndAmt}"/>
-                                            <h:outputLabel value="理财余额:"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.finStartAmt}"/>
-                                            <h:outputLabel value="-"/>
-                                            <p:inputText value="#{assetQryAction.paramBean.finEndAmt}"/>
-                                        </h:panelGrid>
+                                <h:panelGrid columns="2" cellspacing="5"  columnClasses="col-95,col-5">
+                                    <h:panelGrid columns="2" cellspacing="15"  styleClass="topAligned" style="display:block" >
+                                        <p:fieldset legend="基本信息">
+                                            <h:panelGrid columns="2" cellspacing="1">
+                                                <h:outputLabel value="分支机构:"/>
+                                                <p:selectOneMenu id="branchname"
+                                                                 value="#{assetQryAction.paramBean.instNo}">
+                                                    <f:selectItems value="#{assetQryAction.branchList}"/>
+                                                </p:selectOneMenu>
+                                            </h:panelGrid>
+                                            <h:panelGrid columns="2" cellspacing="1" >
+                                                <h:outputLabel value="客户姓名:"/> <p:inputText value="#{assetQryAction.paramBean.custName}"/>
+                                                <h:outputLabel value="客户编号:"/> <p:inputText value="#{assetQryAction.paramBean.custNo}"/>
+                                                <h:outputLabel value="证件编号:"/> <p:inputText value="#{assetQryAction.paramBean.certNo}"/>
+                                                <h:outputLabel value="联系电话:"/> <p:inputText value="#{assetQryAction.paramBean.tel}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="存款信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="账户数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.acctCount1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.acctCount2}"/>
+                                                <h:outputLabel value="活期开户数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.hqCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.hqCnt2}"/>
+                                                <h:outputLabel value="定期开户数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.dqCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.dqCnt2}"/>
+                                                <h:outputLabel value="活期余额累计:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.hqCurrBal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.hqCurrBal2}"/>
+                                                <h:outputLabel value="定期余额累计:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.dqCurrBal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.dqCurrBal2}"/>
+                                                <h:outputLabel value="存款余额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.depTotal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.depTotal2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="贷款信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="贷款户数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.lnCustCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.lnCustCnt2}"/>
+                                                <h:outputLabel value="贷款金额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanAmt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanAmt2}"/>
+                                                <h:outputLabel value="贷款期限:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanDate1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanDate2}"/>
+                                                <h:outputLabel value="贷款余额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanBal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.loanBal2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="理财信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="理财产品数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.productCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.productCnt2}"/>
+                                                <h:outputLabel value="当前份额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fRealshares1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fRealshares2}"/>
+                                                <h:outputLabel value="理财余额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.currAmt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.currAmt2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="基金及CTS保证金">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="基金数量:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fundCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fundCnt2}"/>
+                                                <h:outputLabel value="基金成本:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fundCost1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.fundCost2}"/>
+                                                <h:outputLabel value="保证金余额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.ctsSumbal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.ctsSumbal2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="电子渠道">
+                                            <h:panelGrid columns="2" cellspacing="1">
+                                                <h:outputLabel value="渠道类型:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.ectipTyp}"/>
+                                                <h:outputLabel value="开通渠道:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.chnNo}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="贷记卡信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="贷记卡数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdCrtCount1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdCrtCount2}"/>
+                                                <h:outputLabel value="已激活数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdActiv1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdActiv2}"/>
+                                                <h:outputLabel value="未激活数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdNoActiv1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdNoActiv2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="理财卡信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="理财卡总数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.finTotal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.finTotal2}"/>
+                                                <h:outputLabel value="金卡:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdJk1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdJk2}"/>
+                                                <h:outputLabel value="白金卡:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdBjk1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdBjk2}"/>
+                                                <h:outputLabel value="财私卡:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdCsk1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.crdCsk2}"/>
+                                                <h:outputLabel value="理财卡余额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.finSumbal1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.finSumbal2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="保单信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="保单数:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.insuCnt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.insuCnt2}"/>
+                                                <h:outputLabel value="保单金额:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.insuAmt1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.insuAmt2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
+                                        <p:fieldset legend="贵金属信息">
+                                            <h:panelGrid columns="4" cellspacing="1">
+                                                <h:outputLabel value="纸黄金总量:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.securSum1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.securSum2}"/>
+                                                <h:outputLabel value="实物黄金量:"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.weight1}"/>
+                                                <h:outputLabel value="-"/>
+                                                <p:inputText value="#{assetQryAction.paramBean.weight2}"/>
+                                            </h:panelGrid>
+                                        </p:fieldset>
                                     </h:panelGrid>
                                     <h:panelGrid>
                                         <p:commandButton id="qrybtn" style="width:90px;" value="查询"
@@ -104,6 +249,7 @@
                             <p:column style="text-align:center" headerText="证件号">
                                 <h:outputText value="#{record.certNo}"/>
                             </p:column>
+<!--
                             <p:column style="text-align:center" headerText="存款余额">
                                 <h:outputText value="#{record.depTotal}"/>
                             </p:column>
@@ -113,6 +259,7 @@
                             <p:column style="text-align:center" headerText="理财余额">
                                 <h:outputText value="#{record.finSumbal}"/>
                             </p:column>
+-->
                             <p:column style="text-align:center" headerText="账户数">
                                 <h:outputText value="#{record.acctCount}"/>
                             </p:column>
